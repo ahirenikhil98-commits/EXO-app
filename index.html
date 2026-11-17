@@ -260,22 +260,17 @@
       </div>
 
       <!-- Day Focus & Completion Summary Card -->
-      <div class="exo-card p-4 flex items-center justify-between gap-3">
-        <div class="min-w-0">
-          <div class="flex items-center gap-2">
-            <h2 id="day-focus-title" class="font-brand text-[16px] font-bold text-white truncate">01 · Push & Core</h2>
-            <span id="day-tier-badge" class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md" style="background-color: rgba(48, 209, 88, 0.14); color: var(--exo-green);">
-              T1 Foundation
-            </span>
-          </div>
-          <p id="day-focus-note" class="text-[12px] mt-1 truncate" style="color: var(--exo-text-secondary);">
-            Tendon-safe calibration loads · Hit max reps twice to unlock T2
-          </p>
+      <div class="exo-card px-4 py-3.5 flex items-center justify-between gap-3">
+        <div class="min-w-0 flex items-center gap-2.5">
+          <h2 id="day-focus-title" class="font-brand text-[16px] font-bold text-white truncate">01 · Push & Core</h2>
+          <span id="day-tier-badge" class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md shrink-0" style="background-color: rgba(48, 209, 88, 0.14); color: var(--exo-green);">
+            T1
+          </span>
         </div>
 
-        <div class="text-right shrink-0 pl-3 border-l border-white/10">
-          <div id="day-progress-fraction" class="font-brand text-[20px] font-extrabold tabular-nums text-white">0/23</div>
-          <div class="text-[10px] font-semibold uppercase tracking-wider" style="color: var(--exo-text-secondary);">Sets Done</div>
+        <div class="text-right shrink-0 flex items-baseline gap-1.5">
+          <span id="day-progress-fraction" class="font-brand text-[18px] font-extrabold tabular-nums text-white">0/23</span>
+          <span class="text-[10px] font-semibold uppercase tracking-wider" style="color: var(--exo-text-secondary);">Sets</span>
         </div>
       </div>
 
@@ -1354,9 +1349,8 @@
         state.exerciseLogs[option.id] = {
           prevWeight: option.startKg,
           prevReps: slot.minReps,
-          effort: "good", // 'easy' | 'good' | 'hard'
           suggestedNextKg: option.startKg,
-          suggestionNote: `Mastery Target: ${option.masteryKg} kg × ${slot.maxReps}`,
+          suggestionNote: `Hit ${slot.maxReps} reps on all sets to add +${slot.stepKg} kg`,
           masteryStreak: 0,
           levelUps: 0,
           sets: Array.from({ length: slot.sets }, () => ({
@@ -1371,33 +1365,39 @@
 
     function computeMasteryMetrics(slot, option, rec) {
       const currentKg = parseFloat(rec.sets[0]?.kg) ?? option.startKg;
-      const minRepsDone = Math.min(...rec.sets.map(s => parseInt(s.reps, 10) || 0));
+      const allSetsHitMaxReps = rec.sets.every(s => (parseInt(s.reps, 10) || 0) >= slot.maxReps);
 
       const span = Math.max(2.5, option.masteryKg - option.startKg);
       const loadRatio = Math.max(0, Math.min(1, (currentKg - option.startKg) / span));
 
       const gate1Load = currentKg >= option.masteryKg;
-      const gate2Reps = minRepsDone >= slot.maxReps;
-      const gate3Control = (rec.effort === "easy" || rec.effort === "good") && (rec.masteryStreak >= 2 || (gate1Load && gate2Reps && rec.masteryStreak >= 1));
+      const gate2Reps = allSetsHitMaxReps;
 
       const nextTierOpt = getNextTierOption(slot, option);
       const readyToGraduate = gate1Load && gate2Reps && (rec.masteryStreak >= 2 || rec.levelUps >= 3) && !!nextTierOpt;
 
       const pct = Math.min(100, Math.round(
-        (loadRatio * 65) +
-        (gate2Reps ? 20 : 0) +
-        (Math.min(2, rec.masteryStreak) * 7.5)
+        (loadRatio * 75) +
+        (gate2Reps ? 15 : 0) +
+        (Math.min(2, rec.masteryStreak) * 5)
       ));
+
+      const increment = slot.stepKg > 0 ? Math.min(slot.stepKg, 2.5) : 0;
+      const statusText = readyToGraduate
+        ? `Mastery unlocked · Upgrade to ${nextTierOpt.tierName}`
+        : allSetsHitMaxReps
+          ? `✓ All sets at ${slot.maxReps} reps · +${increment} kg unlocked`
+          : `Hit ${slot.maxReps} reps on all sets for +${increment} kg`;
 
       return {
         currentKg,
-        minRepsDone,
+        allSetsHitMaxReps,
         gate1Load,
         gate2Reps,
-        gate3Control,
         pct,
         nextTierOpt,
-        readyToGraduate
+        readyToGraduate,
+        statusText
       };
     }
 
@@ -1462,34 +1462,29 @@
     }
 
     function openMasteryRulesSheet() {
-      document.getElementById("sheet-slot-title").textContent = "EXO 3-Gate Mastery Engine";
-      document.getElementById("sheet-slot-subtitle").textContent = "How EXO deterministically upgrades your weights & exercises";
+      document.getElementById("sheet-slot-title").textContent = "How Auto-Overload Works";
+      document.getElementById("sheet-slot-subtitle").textContent = "Zero extra buttons — your logged reps drive everything";
 
       document.getElementById("sheet-options-list").innerHTML = `
         <div class="space-y-3 text-[13px] leading-relaxed" style="color: rgba(244, 244, 246, 0.88);">
           <div class="exo-well p-4 space-y-1.5">
             <div class="font-brand font-bold text-white flex items-center justify-between">
-              <span>1. Micro-Overload (Weekly Loads)</span>
+              <span>1. Automatic Weight Jumps</span>
               <span class="text-[11px] px-2 py-0.5 rounded-md" style="background-color: rgba(10,132,255,0.16); color: var(--exo-blue);">+1.25 to +2.5 kg</span>
             </div>
             <p class="text-[12px]" style="color: var(--exo-text-secondary);">
-              Hit the top of your target rep range across all sets and mark effort as <strong class="text-white">Easy</strong> or <strong class="text-white">Solid Form</strong>. EXO automatically increments your working weight for the next session.
+              Each exercise has a rep range (e.g. <strong class="text-white">8–10 reps</strong>). If a weight feels challenging, log 8 or 9 reps and EXO holds the weight steady. Once you hit <strong class="text-white">10 reps across all sets</strong>, EXO automatically adds weight for next week.
             </p>
           </div>
 
           <div class="exo-well p-4 space-y-1.5">
             <div class="font-brand font-bold text-white flex items-center justify-between">
-              <span>2. Macro Tier Graduation</span>
+              <span>2. Automatic Tier Upgrades</span>
               <span class="text-[11px] px-2 py-0.5 rounded-md" style="background-color: rgba(48,209,88,0.16); color: var(--exo-green);">T1 → T2 → T3 Pro</span>
             </div>
             <p class="text-[12px]" style="color: var(--exo-text-secondary);">
-              An exercise unlocks its <strong class="text-white">Intermediate (T2)</strong> or <strong class="text-white">Pro (T3)</strong> movement when all 3 gates turn green:
+              When your working weight reaches the movement's <strong class="text-white">Mastery Target</strong> and you complete max reps twice, EXO unlocks the <strong class="text-white">Intermediate (T2)</strong> or <strong class="text-white">Pro (T3)</strong> exercise variation.
             </p>
-            <ul class="space-y-1 pt-1 text-[12px]" style="color: rgba(244,244,246,0.8);">
-              <li>• <strong class="text-white">LOAD GATE:</strong> Reach the movement's Mastery Target Weight.</li>
-              <li>• <strong class="text-white">REPS GATE:</strong> Complete max target reps on all sets.</li>
-              <li>• <strong class="text-white">FORM GATE:</strong> Verify 2 sessions with Solid/Easy control (zero joint grind).</li>
-            </ul>
           </div>
         </div>
       `;
@@ -1498,7 +1493,7 @@
     }
 
     /* =========================================================================
-       6. TAB 1: WORKOUTS & 3-GATE MASTERY ENGINE
+       6. TAB 1: WORKOUTS & AUTO-OVERLOAD ENGINE
     ========================================================================= */
     function selectDay(dayNum) {
       state.activeDay = dayNum;
@@ -1535,14 +1530,6 @@
       }
     }
 
-    function setExerciseEffort(optionId, effortLevel) {
-      const rec = state.exerciseLogs[optionId];
-      if (!rec) return;
-      rec.effort = effortLevel;
-      persistState();
-      renderWorkoutsView();
-    }
-
     function promoteExerciseTier(slotId, nextOptionId) {
       state.activeOptionBySlot[slotId] = nextOptionId;
       persistState();
@@ -1562,13 +1549,12 @@
         s.reps = slot.maxReps;
         s.done = true;
       });
-      rec.effort = "good";
       rec.masteryStreak = 2;
       rec.levelUps = 3;
       persistState();
       closeSwapSheet();
       renderWorkoutsView();
-      notifyUser(`3-Gate Mastery Unlocked for ${opt.name}`, "#30D158");
+      notifyUser(`Tier Mastery Unlocked for ${opt.name}`, "#30D158");
     }
 
     function evaluateExerciseProgression(slot, option, rec) {
@@ -1580,21 +1566,16 @@
       rec.prevWeight = currentKg;
       rec.prevReps = minRepsDone;
 
-      const increment = state.acclimationMode
-        ? (slot.stepKg > 0 ? Math.min(slot.stepKg, 2.5) : 0)
-        : slot.stepKg;
+      const increment = slot.stepKg > 0 ? Math.min(slot.stepKg, 2.5) : 0;
 
-      if (rec.effort === "hard") {
-        rec.suggestedNextKg = currentKg;
-        rec.suggestionNote = "Hold load · Consolidate tendon stability";
-      } else if (minRepsDone >= slot.maxReps && (rec.effort === "easy" || rec.effort === "good")) {
+      if (minRepsDone >= slot.maxReps) {
         if (currentKg >= option.masteryKg) {
           rec.masteryStreak = (rec.masteryStreak || 0) + 1;
         }
         if (increment > 0 && currentKg < option.masteryKg) {
           rec.suggestedNextKg = Math.round((currentKg + increment) * 100) / 100;
           rec.levelUps = (rec.levelUps || 0) + 1;
-          rec.suggestionNote = `+${increment} kg Next (${rec.suggestedNextKg}/${option.masteryKg} kg)`;
+          rec.suggestionNote = `+${increment} kg unlocked (${rec.suggestedNextKg} kg next)`;
           if (rec.suggestedNextKg >= option.masteryKg) {
             rec.masteryStreak = Math.max(1, rec.masteryStreak || 0);
           }
@@ -1606,7 +1587,7 @@
         }
       } else {
         rec.suggestedNextKg = currentKg;
-        rec.suggestionNote = `Target: ${slot.maxReps} reps → ${option.masteryKg} kg`;
+        rec.suggestionNote = `Hold ${currentKg} kg · Target ${slot.maxReps} reps`;
       }
     }
 
@@ -1655,7 +1636,6 @@
 
       const split = WORKOUT_SPLITS[day];
       document.getElementById("day-focus-title").textContent = split.name;
-      document.getElementById("day-focus-note").textContent = split.subtitle;
 
       let totalSets = 0;
       let doneSets = 0;
@@ -1672,9 +1652,12 @@
         const slotDone = rec.sets.filter(s => s.done).length;
         doneSets += slotDone;
 
+        const increment = slot.stepKg > 0 ? Math.min(slot.stepKg, 2.5) : 0;
+        const readyForMicroBump = slotDone === slot.sets && mastery.gate2Reps;
+
         const tierStyles = {
-          1: { bg: "rgba(48, 209, 88, 0.14)", text: "#30D158", label: "T1 Foundation" },
-          2: { bg: "rgba(10, 132, 255, 0.16)", text: "#0A84FF", label: "T2 Intermediate" },
+          1: { bg: "rgba(48, 209, 88, 0.14)", text: "#30D158", label: "T1" },
+          2: { bg: "rgba(10, 132, 255, 0.16)", text: "#0A84FF", label: "T2" },
           3: { bg: "rgba(244, 244, 246, 0.16)", text: "#F4F4F6", label: "T3 Pro" }
         };
         const tStyle = tierStyles[opt.tier || 1];
@@ -1682,7 +1665,7 @@
         const setRowsHtml = rec.sets.map((s, sIdx) => `
           <div class="grid grid-cols-12 items-center min-h-[48px] py-1.5 px-4 ${sIdx > 0 ? "exo-hairline-t" : ""}">
             <!-- SET NUMBER -->
-            <div class="col-span-2 flex items-center gap-1.5">
+            <div class="col-span-2 flex items-center">
               <span class="font-brand text-[13px] font-bold tabular-nums" style="color: ${s.done ? "var(--exo-green)" : "var(--exo-text-secondary)"};">
                 0${sIdx + 1}
               </span>
@@ -1719,7 +1702,7 @@
               />
             </div>
 
-            <!-- DONE CHECKMARK (44px Ergonomic Touch Zone) -->
+            <!-- DONE CHECKMARK -->
             <div class="col-span-2 flex justify-end">
               <button
                 onclick="toggleSetCompleted('${opt.id}', ${sIdx})"
@@ -1737,10 +1720,10 @@
 
         return `
           <section class="exo-card overflow-hidden">
-            <!-- Exercise Header -->
+            <!-- Clean Minimal Exercise Header -->
             <div class="p-4 pb-3 flex items-start justify-between gap-3">
               <div class="min-w-0">
-                <div class="flex items-center gap-2 flex-wrap">
+                <div class="flex items-center gap-2">
                   <span class="font-brand text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md" style="background-color: ${tStyle.bg}; color: ${tStyle.text};">
                     ${tStyle.label}
                   </span>
@@ -1749,9 +1732,6 @@
                   </span>
                 </div>
                 <h3 class="font-brand text-[17px] font-extrabold text-white mt-1.5 leading-snug">${opt.name}</h3>
-                <p class="text-[12px] mt-0.5 leading-relaxed" style="color: var(--exo-text-secondary);">
-                  ${opt.bioNote}
-                </p>
               </div>
 
               <button
@@ -1765,37 +1745,29 @@
               </button>
             </div>
 
-            <!-- Single-Line 3-Gate Mastery & Overload Bar -->
+            <!-- 1-Line Auto-Overload Progress Bar -->
             <div class="px-4 pb-3">
-              <div class="exo-well px-3.5 py-2.5 space-y-2">
+              <div class="exo-well px-3 py-2 space-y-1.5">
                 <div class="flex items-center justify-between text-[11px] tabular-nums">
-                  <span style="color: var(--exo-text-secondary);">
-                    Mastery: <strong class="text-white">${mastery.currentKg} / ${opt.masteryKg} kg</strong>
+                  <span class="font-medium truncate" style="color: ${mastery.allSetsHitMaxReps ? "var(--exo-green)" : "var(--exo-text-secondary)"};">
+                    ${mastery.statusText}
                   </span>
-                  <div class="flex items-center gap-2">
-                    <span class="font-semibold" style="color: ${mastery.gate1Load ? "var(--exo-green)" : "var(--exo-text-secondary)"};">
-                      ${mastery.gate1Load ? "●" : "○"} Load
-                    </span>
-                    <span class="font-semibold" style="color: ${mastery.gate2Reps ? "var(--exo-green)" : "var(--exo-text-secondary)"};">
-                      ${mastery.gate2Reps ? "●" : "○"} Reps
-                    </span>
-                    <span class="font-semibold" style="color: ${mastery.gate3Control ? "var(--exo-green)" : "var(--exo-text-secondary)"};">
-                      ${mastery.gate3Control ? "●" : "○"} Form
-                    </span>
-                  </div>
+                  <span class="font-bold shrink-0 ml-2 text-white">
+                    ${mastery.currentKg}/${opt.masteryKg} kg
+                  </span>
                 </div>
                 <div class="w-full h-1 rounded-full overflow-hidden bg-black/60">
-                  <div class="h-full rounded-full transition-all duration-300" style="width: ${mastery.pct}%; background-color: ${mastery.readyToGraduate ? "var(--exo-green)" : "var(--exo-blue)"};"></div>
+                  <div class="h-full rounded-full transition-all duration-300" style="width: ${mastery.pct}%; background-color: ${mastery.readyToGraduate || mastery.allSetsHitMaxReps ? "var(--exo-green)" : "var(--exo-blue)"};"></div>
                 </div>
               </div>
 
               ${mastery.readyToGraduate && mastery.nextTierOpt ? `
                 <div class="mt-2.5 p-3 rounded-xl flex items-center justify-between gap-2" style="background-color: rgba(48, 209, 88, 0.12); border: 1px solid rgba(48, 209, 88, 0.35);">
                   <div class="min-w-0">
-                    <div class="font-brand text-[10px] font-bold uppercase tracking-widest" style="color: var(--exo-green);">3-Gate Mastery Unlocked</div>
+                    <div class="font-brand text-[10px] font-bold uppercase tracking-widest" style="color: var(--exo-green);">Mastery Achieved</div>
                     <div class="text-[12px] font-semibold text-white truncate mt-0.5">${mastery.nextTierOpt.tierName}: ${mastery.nextTierOpt.name}</div>
                   </div>
-                  <button onclick="promoteExerciseTier('${slot.slotId}', '${mastery.nextTierOpt.id}')" class="shrink-0 h-8 px-3 rounded-lg font-brand text-[11px] font-bold uppercase tracking-wider text-black active:opacity-85" style="background-color: var(--exo-green);">
+                  <button onclick="promoteExerciseTier('${slot.slotId}', '${mastery.nextTierOpt.id}')" class="shrink-0 h-8 px-3 rounded-lg font-brand text-[11px] font-bold uppercase tracking-wider text-black active:opacity-85 whitespace-nowrap" style="background-color: var(--exo-green);">
                     Upgrade ↑
                   </button>
                 </div>
@@ -1812,29 +1784,6 @@
 
             <!-- Set Rows -->
             <div>${setRowsHtml}</div>
-
-            <!-- Effort / Feel Selector & AI Overload Status -->
-            <div class="px-4 py-3 exo-hairline-t flex items-center justify-between gap-2" style="background-color: rgba(255,255,255,0.01);">
-              <div class="flex items-center gap-1">
-                ${[
-                  { key: "easy", label: "Easy" },
-                  { key: "good", label: "Solid Form" },
-                  { key: "hard", label: "Max Effort" }
-                ].map(item => `
-                  <button
-                    onclick="setExerciseEffort('${opt.id}', '${item.key}')"
-                    class="h-7 px-2.5 rounded-lg text-[11px] font-semibold transition"
-                    style="background-color: ${rec.effort === item.key ? "rgba(244, 244, 246, 0.14)" : "transparent"}; color: ${rec.effort === item.key ? "#FFFFFF" : "var(--exo-text-secondary)"};"
-                  >
-                    ${item.label}
-                  </button>
-                `).join("")}
-              </div>
-
-              <span class="text-[11px] font-medium tabular-nums truncate" style="color: var(--exo-blue);">
-                ${rec.suggestionNote}
-              </span>
-            </div>
           </section>
         `;
       }).join("");
@@ -1859,62 +1808,6 @@
       });
     }
 
-    function openSwapSheet(slotId) {
-      activeSwapSlotId = slotId;
-      const split = WORKOUT_SPLITS[state.activeDay];
-      const slot = split.slots.find(s => s.slotId === slotId);
-      if (!slot) return;
-
-      const currentOpt = getActiveOption(slot);
-      document.getElementById("sheet-slot-title").textContent = currentOpt.name;
-      document.getElementById("sheet-slot-subtitle").textContent = "Switch between Dumbbell/Machine options or preview Mastery Tiers";
-
-      const tierBadgeMap = {
-        1: { label: "T1 · Foundation (Return-to-Gym Safe)", color: "#30D158" },
-        2: { label: "T2 · Intermediate Hypertrophy", color: "#0A84FF" },
-        3: { label: "T3 · Pro Athletic Mastery", color: "#F4F4F6" }
-      };
-
-      const listHtml = slot.options.map(opt => {
-        const isSelected = opt.id === currentOpt.id;
-        const tMeta = tierBadgeMap[opt.tier || 1];
-        return `
-          <button
-            onclick="chooseSwapOption('${slot.slotId}', '${opt.id}')"
-            class="w-full p-4 rounded-2xl text-left flex items-start justify-between gap-3 transition active:scale-99"
-            style="background-color: ${isSelected ? "rgba(244, 244, 246, 0.1)" : "var(--exo-elevated)"}; border: 1px solid ${isSelected ? "var(--exo-ice)" : "var(--exo-border)"};"
-          >
-            <div>
-              <div class="font-brand text-[10px] font-bold uppercase tracking-widest" style="color: ${tMeta.color};">
-                ${tMeta.label}
-              </div>
-              <div class="font-brand text-[15px] font-bold text-white mt-1">${opt.name}</div>
-              <div class="text-[12px] mt-0.5" style="color: var(--exo-text-secondary);">${opt.bioNote}</div>
-              <div class="text-[11px] mt-1.5 font-semibold tabular-nums" style="color: var(--exo-blue);">
-                Start: ${opt.startKg} kg → Mastery: ${opt.masteryKg} kg (${opt.unitNote})
-              </div>
-            </div>
-            <div class="shrink-0 mt-1">
-              ${isSelected ? `
-                <span class="w-6 h-6 rounded-full flex items-center justify-center text-[12px] font-bold text-black" style="background-color: var(--exo-ice);">✓</span>
-              ` : ""}
-            </div>
-          </button>
-        `;
-      }).join("");
-
-      const demoBtnHtml = `
-        <div class="pt-3 exo-hairline-t mt-3">
-          <button onclick="fastTrackMasteryDemo('${slot.slotId}')" class="w-full h-11 rounded-xl exo-well text-[12px] font-semibold active:opacity-75 whitespace-nowrap" style="color: var(--exo-green);">
-            ⚡ Simulate Tier Mastery
-          </button>
-        </div>
-      `;
-
-      document.getElementById("sheet-options-list").innerHTML = listHtml + demoBtnHtml;
-      showBottomSheet();
-    }
-
     function closeSwapSheet() {
       const backdrop = document.getElementById("sheet-backdrop");
       const panel = document.getElementById("sheet-panel");
@@ -1927,78 +1820,147 @@
       }, 260);
     }
 
-    function chooseSwapOption(slotId, optionId) {
+    function openSwapSheet(slotId) {
+      activeSwapSlotId = slotId;
+      const split = WORKOUT_SPLITS[state.activeDay];
+      const slot = split.slots.find(s => s.slotId === slotId);
+      if (!slot) return;
+
+      const currentOpt = getActiveOption(slot);
+      document.getElementById("sheet-slot-title").textContent = "Equipment & Mastery Tiers";
+      document.getElementById("sheet-slot-subtitle").textContent = `Target: ${slot.repRangeText} · Select variation or tier`;
+
+      const optionsHtml = slot.options.map(opt => {
+        const isSelected = opt.id === currentOpt.id;
+        const rec = getExerciseRecord(slot, opt);
+        const curKg = rec.sets[0]?.kg ?? opt.startKg;
+
+        const tierColors = {
+          1: { badge: "T1 · Foundation", color: "#30D158", bg: "rgba(48,209,88,0.14)" },
+          2: { badge: "T2 · Intermediate", color: "#0A84FF", bg: "rgba(10,132,255,0.16)" },
+          3: { badge: "T3 · Pro", color: "#F4F4F6", bg: "rgba(244,244,246,0.16)" }
+        };
+        const tc = tierColors[opt.tier || 1];
+
+        return `
+          <button
+            onclick="selectExerciseOption('${slot.slotId}', '${opt.id}')"
+            class="w-full text-left p-3.5 rounded-2xl transition flex items-start justify-between gap-3 active:scale-[0.99]"
+            style="background-color: ${isSelected ? "rgba(255,255,255,0.08)" : "var(--exo-elevated)"}; border: 1px solid ${isSelected ? "rgba(255,255,255,0.28)" : "rgba(255,255,255,0.06)"};"
+          >
+            <div class="min-w-0 space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="font-brand text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded" style="background-color: ${tc.bg}; color: ${tc.color};">
+                  ${tc.badge}
+                </span>
+                <span class="text-[11px] font-semibold tabular-nums" style="color: var(--exo-text-secondary);">
+                  ${curKg} kg → ${opt.masteryKg} kg Mastery
+                </span>
+              </div>
+              <div class="font-brand text-[15px] font-bold text-white">${opt.name}</div>
+              <p class="text-[12px] leading-relaxed" style="color: var(--exo-text-secondary);">${opt.bioNote}</p>
+            </div>
+            <div class="shrink-0 mt-1">
+              <span class="w-6 h-6 rounded-full flex items-center justify-center text-[12px] font-bold" style="background-color: ${isSelected ? "var(--exo-ice)" : "var(--exo-well)"}; color: ${isSelected ? "#000" : "var(--exo-text-muted)"};">
+                ✓
+              </span>
+            </div>
+          </button>
+        `;
+      }).join("");
+
+      const demoHtml = `
+        <div class="pt-2">
+          <button
+            onclick="fastTrackMasteryDemo('${slot.slotId}')"
+            class="w-full h-10 rounded-xl exo-well text-[12px] font-semibold flex items-center justify-center gap-1.5 active:scale-98 transition"
+            style="color: var(--exo-green);"
+          >
+            <span>Simulate Tier Mastery</span>
+            <span>↑</span>
+          </button>
+        </div>
+      `;
+
+      document.getElementById("sheet-options-list").innerHTML = optionsHtml + demoHtml;
+      showBottomSheet();
+    }
+
+    function selectExerciseOption(slotId, optionId) {
       state.activeOptionBySlot[slotId] = optionId;
       persistState();
       closeSwapSheet();
       renderWorkoutsView();
-      notifyUser("Updated movement & tier", "#0A84FF");
+      notifyUser("Exercise variation updated", "#0A84FF");
     }
 
     /* =========================================================================
-       8. FLOATING REST TIMER PILL
+       8. REST RECOVERY TIMER CONTROLLER
     ========================================================================= */
     let restInterval = null;
-    let restTotalSeconds = 90;
-    let restRemainingSeconds = 90;
-
-    function formatClock(sec) {
-      const m = Math.floor(sec / 60);
-      const s = sec % 60;
-      return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-    }
+    let restTotalSec = 90;
+    let restRemainingSec = 0;
 
     function triggerRestTimer(seconds = 90) {
-      if (restInterval) clearInterval(restInterval);
-      restTotalSeconds = seconds;
-      restRemainingSeconds = seconds;
-
+      restTotalSec = seconds;
+      restRemainingSec = seconds;
       const pill = document.getElementById("rest-timer-pill");
       pill.classList.remove("hidden");
-      updateTimerVisuals();
+      updateTimerUI();
 
+      if (restInterval) clearInterval(restInterval);
       restInterval = setInterval(() => {
-        restRemainingSeconds -= 1;
-        if (restRemainingSeconds <= 0) {
+        restRemainingSec -= 1;
+        if (restRemainingSec <= 0) {
           dismissRestTimer();
-          playGentleChime();
-          notifyUser("Rest complete · Begin next set", "#0A84FF");
+          notifyUser("Rest complete — ready for next set", "#30D158");
         } else {
-          updateTimerVisuals();
+          updateTimerUI();
         }
       }, 1000);
     }
 
-    function updateTimerVisuals() {
-      document.getElementById("timer-readout").textContent = formatClock(restRemainingSeconds);
-      const circumference = 94.2;
-      const ratio = Math.max(0, Math.min(1, restRemainingSeconds / restTotalSeconds));
-      document.getElementById("timer-ring-circle").style.strokeDashoffset = circumference * (1 - ratio);
-    }
-
     function shiftRestTimer(deltaSec) {
-      restRemainingSeconds = Math.max(5, restRemainingSeconds + deltaSec);
-      restTotalSeconds = Math.max(restTotalSeconds, restRemainingSeconds);
-      updateTimerVisuals();
+      restRemainingSec = Math.max(5, restRemainingSec + deltaSec);
+      restTotalSec = Math.max(restTotalSec, restRemainingSec);
+      updateTimerUI();
     }
 
     function dismissRestTimer() {
-      if (restInterval) clearInterval(restInterval);
-      document.getElementById("rest-timer-pill").classList.add("hidden");
+      if (restInterval) {
+        clearInterval(restInterval);
+        restInterval = null;
+      }
+      const pill = document.getElementById("rest-timer-pill");
+      if (pill) pill.classList.add("hidden");
+    }
+
+    function updateTimerUI() {
+      const mins = String(Math.floor(restRemainingSec / 60)).padStart(2, "0");
+      const secs = String(restRemainingSec % 60).padStart(2, "0");
+      const readout = document.getElementById("timer-readout");
+      if (readout) readout.textContent = `${mins}:${secs}`;
+
+      const ring = document.getElementById("timer-ring-circle");
+      if (ring) {
+        const circumference = 94.2;
+        const fraction = Math.max(0, Math.min(1, restRemainingSec / Math.max(1, restTotalSec)));
+        ring.style.strokeDashoffset = String(circumference * (1 - fraction));
+      }
     }
 
     /* =========================================================================
-       9. TAB 2: 7-DAY OFFICE FUEL & TIMED HYDRATION ENGINE
+       9. TAB 2: FUEL & TIMED HYDRATION CONTROLLERS
     ========================================================================= */
     function getTodayFuelRecord() {
-      const key = `${todayISO()}_${state.selectedWeekday}`;
+      const key = todayISO();
       if (!state.dailyFuel[key]) {
         state.dailyFuel[key] = {
           checkedSlots: {},
-          slotOptionIdx: {},
+          selectedOptionBySlot: {},
           extraMeals: [],
-          checkedWater: {},
-          steps: 0,
+          waterChecked: {},
+          steps: 2500,
           habits: {
             h_prot: false,
             h_cal: false,
@@ -2017,35 +1979,33 @@
       renderFuelView();
     }
 
-    function selectWeekday(dayCode) {
+    function selectMealWeekday(dayCode) {
       state.selectedWeekday = dayCode;
-      document.getElementById("header-session-counter").textContent = dayCode.toUpperCase();
       persistState();
+      document.getElementById("header-session-counter").textContent = dayCode.toUpperCase();
       renderFuelView();
     }
 
     function toggleTimedMealCheck(slotId) {
       const rec = getTodayFuelRecord();
-      rec.checkedSlots[slotId] = !rec.checkedSlots[slotId];
-      syncFuelHabits(rec);
+      const key = `${state.selectedWeekday}_${slotId}`;
+      rec.checkedSlots[key] = !rec.checkedSlots[key];
       persistState();
       renderFuelView();
-      if (rec.checkedSlots[slotId]) {
-        notifyUser("Logged to daily fuel telemetry", "#30D158");
-      }
     }
 
-    function cycleTimedMealOption(slotId, maxOptions) {
+    function swapTimedMealOption(slotId) {
       const rec = getTodayFuelRecord();
-      const currentIdx = rec.slotOptionIdx[slotId] || 0;
-      rec.slotOptionIdx[slotId] = (currentIdx + 1) % maxOptions;
-      syncFuelHabits(rec);
+      const key = `${state.selectedWeekday}_${slotId}`;
+      const currentIdx = rec.selectedOptionBySlot[key] || 0;
+      rec.selectedOptionBySlot[key] = currentIdx === 0 ? 1 : 0;
       persistState();
       renderFuelView();
     }
 
     function toggleCustomFoodRow() {
-      document.getElementById("custom-food-drawer").classList.toggle("hidden");
+      const drawer = document.getElementById("custom-food-drawer");
+      drawer.classList.toggle("hidden");
     }
 
     function submitCustomFood() {
@@ -2053,141 +2013,78 @@
       const kcalEl = document.getElementById("custom-food-kcal");
       const protEl = document.getElementById("custom-food-prot");
 
-      const title = titleEl.value.trim() || "Office Fuel";
-      const kcal = Math.max(0, parseInt(kcalEl.value, 10) || 0);
-      const prot = Math.max(0, parseInt(protEl.value, 10) || 0);
-      if (!kcal && !prot) return;
+      const name = (titleEl.value || "").trim() || "Protein Snack";
+      const kcal = Math.max(0, parseInt(kcalEl.value, 10) || 180);
+      const prot = Math.max(0, parseInt(protEl.value, 10) || 20);
 
       const rec = getTodayFuelRecord();
-      rec.extraMeals.push({ id: Date.now(), title, kcal, prot });
-      syncFuelHabits(rec);
-      persistState();
-      renderFuelView();
+      rec.extraMeals.push({ name, kcal, prot });
 
       titleEl.value = "";
       kcalEl.value = "";
       protEl.value = "";
       document.getElementById("custom-food-drawer").classList.add("hidden");
-      notifyUser(`Added +${prot}g Protein · ${kcal} kcal`);
-    }
 
-    function removeExtraMeal(id) {
-      const rec = getTodayFuelRecord();
-      rec.extraMeals = rec.extraMeals.filter(m => m.id !== id);
-      syncFuelHabits(rec);
       persistState();
       renderFuelView();
+      notifyUser(`Added ${name} (+${prot}g protein)`, "#30D158");
     }
 
     function clearExtraMeals() {
       const rec = getTodayFuelRecord();
       rec.extraMeals = [];
-      syncFuelHabits(rec);
       persistState();
       renderFuelView();
-    }
-
-    /* ---- SMART HYDRATION & NOTIFICATION ENGINE ---- */
-    function playGentleChime() {
-      try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
-        const ctx = new AudioCtx();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(587.33, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.18);
-        gain.gain.setValueAtTime(0.08, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.36);
-      } catch (e) {}
-    }
-
-    async function toggleWaterNotifications() {
-      state.waterAlertsEnabled = !state.waterAlertsEnabled;
-      if (state.waterAlertsEnabled && "Notification" in window && Notification.permission === "default") {
-        try {
-          await Notification.requestPermission();
-        } catch (e) {}
-      }
-      persistState();
-      renderFuelView();
-      if (state.waterAlertsEnabled) {
-        playGentleChime();
-        notifyUser("EXO Hydration Alerts Active (08:30 – 21:15)", "#64D2FF");
-      } else {
-        notifyUser("Hydration Alerts Paused", "#FF9F0A");
-      }
-    }
-
-    function getNextUnloggedWaterSlot(rec) {
-      return WATER_SCHEDULE.find(slot => !rec.checkedWater[slot.id]) || null;
-    }
-
-    function testWaterReminderAlert() {
-      const rec = getTodayFuelRecord();
-      const nextSlot = getNextUnloggedWaterSlot(rec) || WATER_SCHEDULE[0];
-      playGentleChime();
-      notifyUser(`Hydration Alert: Drink ${nextSlot.ml} ml (${nextSlot.title})`, "#64D2FF");
-
-      if ("Notification" in window && Notification.permission === "granted") {
-        try {
-          new Notification("EXO Hydration Checkpoint", {
-            body: `${nextSlot.time}: Drink ${nextSlot.ml} ml — ${nextSlot.title} (3.5L Protocol)`
-          });
-        } catch (e) {}
-      }
     }
 
     function toggleWaterSlot(slotId) {
       const rec = getTodayFuelRecord();
-      rec.checkedWater[slotId] = !rec.checkedWater[slotId];
-      syncFuelHabits(rec);
+      rec.waterChecked[slotId] = !rec.waterChecked[slotId];
       persistState();
       renderFuelView();
-      if (rec.checkedWater[slotId]) {
-        const slot = WATER_SCHEDULE.find(s => s.id === slotId);
-        notifyUser(`Logged +${slot ? slot.ml : 450} ml water`, "#64D2FF");
-      }
     }
 
     function logNextScheduledWater() {
       const rec = getTodayFuelRecord();
-      const nextSlot = getNextUnloggedWaterSlot(rec);
+      const nextSlot = WATER_SCHEDULE.find(w => !rec.waterChecked[w.id]);
       if (!nextSlot) {
-        notifyUser("3,500 ml daily hydration complete!", "#30D158");
+        notifyUser("3.5L hydration goal already complete!", "#64D2FF");
         return;
       }
-      rec.checkedWater[nextSlot.id] = true;
-      syncFuelHabits(rec);
+      rec.waterChecked[nextSlot.id] = true;
       persistState();
       renderFuelView();
-      notifyUser(`Logged ${nextSlot.ml} ml (${nextSlot.time})`, "#64D2FF");
+      notifyUser(`Logged +${nextSlot.ml} ml (${nextSlot.title})`, "#64D2FF");
     }
 
-    setInterval(() => {
-      if (!state.waterAlertsEnabled) return;
-      const now = new Date();
-      const currentHourDec = now.getHours() + (now.getMinutes() / 60);
-      const rec = getTodayFuelRecord();
-      const dueSlot = WATER_SCHEDULE.find(s =>
-        !rec.checkedWater[s.id] &&
-        Math.abs(currentHourDec - s.hour24) <= 0.15
-      );
-      if (dueSlot && state.lastWaterAlertSlot !== `${todayISO()}_${dueSlot.id}`) {
-        state.lastWaterAlertSlot = `${todayISO()}_${dueSlot.id}`;
-        persistState();
-        testWaterReminderAlert();
+    function toggleWaterNotifications() {
+      state.waterAlertsEnabled = !state.waterAlertsEnabled;
+      if (state.waterAlertsEnabled && "Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission().catch(() => {});
       }
-    }, 60000);
+      persistState();
+      renderFuelView();
+      notifyUser(
+        state.waterAlertsEnabled ? "Timely Water Alerts enabled" : "Water Alerts paused",
+        state.waterAlertsEnabled ? "#64D2FF" : "#8E8E93"
+      );
+    }
+
+    function testWaterReminderAlert() {
+      const rec = getTodayFuelRecord();
+      const nextSlot = WATER_SCHEDULE.find(w => !rec.waterChecked[w.id]) || WATER_SCHEDULE[0];
+      const msg = `Drink ${nextSlot.ml} ml now (${nextSlot.title})`;
+      if ("Notification" in window && Notification.permission === "granted") {
+        try {
+          new Notification("EXO Hydration Protocol", { body: msg });
+        } catch (e) {}
+      }
+      notifyUser(msg, "#64D2FF");
+    }
 
     function changeSteps(delta) {
       const rec = getTodayFuelRecord();
-      rec.steps = Math.max(0, rec.steps + delta);
+      rec.steps = Math.max(0, (rec.steps || 0) + delta);
       persistState();
       renderFuelView();
     }
@@ -2199,174 +2096,157 @@
       renderFuelView();
     }
 
-    function calculateDayMacrosAndWater(rec) {
-      const dayPlan = WEEKLY_MEAL_PLAN[state.selectedWeekday] || WEEKLY_MEAL_PLAN.Mon;
-      let totalCal = 0;
-      let totalProt = 0;
-
-      dayPlan.slots.forEach(slot => {
-        if (rec.checkedSlots[slot.slotId]) {
-          const idx = rec.slotOptionIdx[slot.slotId] || 0;
-          const opt = slot.options[idx] || slot.options[0];
-          totalCal += opt.kcal;
-          totalProt += opt.prot;
-        }
-      });
-
-      (rec.extraMeals || []).forEach(m => {
-        totalCal += m.kcal;
-        totalProt += m.prot;
-      });
-
-      let totalWaterMl = 0;
-      WATER_SCHEDULE.forEach(w => {
-        if (rec.checkedWater[w.id]) totalWaterMl += w.ml;
-      });
-
-      return { totalCal, totalProt, totalWaterMl };
-    }
-
-    function syncFuelHabits(rec) {
-      const { totalCal, totalProt, totalWaterMl } = calculateDayMacrosAndWater(rec);
-      rec.habits.h_prot = totalProt >= 105;
-      rec.habits.h_cal = totalCal >= 1350 && totalCal <= 1850;
-      rec.habits.h_water = totalWaterMl >= 3200;
-    }
-
     function renderFuelView() {
       const rec = getTodayFuelRecord();
-      const { totalCal, totalProt, totalWaterMl } = calculateDayMacrosAndWater(rec);
+      const dayCode = state.selectedWeekday || "Mon";
+      const plan = WEEKLY_MEAL_PLAN[dayCode] || WEEKLY_MEAL_PLAN.Mon;
 
-      const isMeals = (state.fuelSubtab || "meals") === "meals";
+      const isMeals = state.fuelSubtab !== "water";
       document.getElementById("subtab-meals").classList.toggle("active", isMeals);
       document.getElementById("subtab-water").classList.toggle("active", !isMeals);
       document.getElementById("fuel-subview-meals").classList.toggle("hidden", !isMeals);
       document.getElementById("fuel-subview-water").classList.toggle("hidden", isMeals);
 
-      document.getElementById("fuel-cal-val").textContent = totalCal;
-      document.getElementById("fuel-cal-bar").style.width = `${Math.min(100, (totalCal / 1650) * 100)}%`;
+      // Compute calories & protein
+      let totalKcal = 0;
+      let totalProt = 0;
+
+      plan.slots.forEach(slot => {
+        const key = `${dayCode}_${slot.slotId}`;
+        const optIdx = rec.selectedOptionBySlot[key] || 0;
+        const chosen = slot.options[optIdx] || slot.options[0];
+        if (rec.checkedSlots[key]) {
+          totalKcal += chosen.kcal;
+          totalProt += chosen.prot;
+        }
+      });
+
+      rec.extraMeals.forEach(item => {
+        totalKcal += item.kcal;
+        totalProt += item.prot;
+      });
+
+      // Compute water
+      let totalWaterMl = 0;
+      WATER_SCHEDULE.forEach(w => {
+        if (rec.waterChecked[w.id]) totalWaterMl += w.ml;
+      });
+
+      // Auto-sync habits
+      rec.habits.h_prot = totalProt >= 105;
+      rec.habits.h_cal = totalKcal >= 1350 && totalKcal <= 1850;
+      rec.habits.h_water = totalWaterMl >= 3500;
+
+      // Update Top Macro Strip
+      document.getElementById("fuel-cal-val").textContent = totalKcal;
+      document.getElementById("fuel-cal-max").textContent = `/${state.calorieTarget}`;
+      document.getElementById("fuel-cal-bar").style.width = `${Math.min(100, Math.round((totalKcal / state.calorieTarget) * 100))}%`;
 
       document.getElementById("fuel-prot-val").textContent = `${totalProt}g`;
-      document.getElementById("fuel-prot-bar").style.width = `${Math.min(100, (totalProt / 110) * 100)}%`;
+      document.getElementById("fuel-prot-bar").style.width = `${Math.min(100, Math.round((totalProt / 110) * 100))}%`;
 
       document.getElementById("fuel-water-top").textContent = `${(totalWaterMl / 1000).toFixed(1)}L`;
-      document.getElementById("fuel-water-bar").style.width = `${Math.min(100, (totalWaterMl / 3500) * 100)}%`;
+      document.getElementById("fuel-water-bar").style.width = `${Math.min(100, Math.round((totalWaterMl / 3500) * 100))}%`;
 
-      document.getElementById("fuel-top-steps").textContent = `${rec.steps.toLocaleString()} / 6,000`;
+      document.getElementById("fuel-top-steps").textContent = `${(rec.steps || 0).toLocaleString()} / 6,000`;
+      const creatDot = document.getElementById("creatine-dot");
+      creatDot.style.backgroundColor = rec.habits.h_creatine ? "var(--exo-green)" : "#52525B";
 
-      const creatineDot = document.getElementById("creatine-dot");
-      const creatineBtn = document.getElementById("creatine-pill-btn");
-      if (rec.habits.h_creatine) {
-        creatineDot.style.backgroundColor = "var(--exo-green)";
-        creatineBtn.style.color = "#FFFFFF";
-      } else {
-        creatineDot.style.backgroundColor = "#52525B";
-        creatineBtn.style.color = "var(--exo-text-secondary)";
-      }
-
-      // 7-Day Weekday Selector
+      // Weekday Selector Pills
       const daysOrder = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
       document.getElementById("weekday-pills-row").innerHTML = daysOrder.map(d => {
-        const active = d === state.selectedWeekday;
+        const active = d === dayCode;
         return `
           <button
-            onclick="selectWeekday('${d}')"
-            class="h-11 rounded-xl font-brand text-[11px] font-bold uppercase tracking-wider transition flex flex-col items-center justify-center"
+            onclick="selectMealWeekday('${d}')"
+            class="h-9 rounded-xl font-brand text-[11px] font-bold uppercase tracking-wider transition active:scale-95"
             style="background-color: ${active ? "var(--exo-ice)" : "var(--exo-surface)"}; color: ${active ? "#000000" : "var(--exo-text-secondary)"}; border: 1px solid ${active ? "var(--exo-ice)" : "var(--exo-border)"};"
           >
-            <span>${d}</span>
+            ${d}
           </button>
         `;
       }).join("");
 
-      const dayPlan = WEEKLY_MEAL_PLAN[state.selectedWeekday] || WEEKLY_MEAL_PLAN.Mon;
-      document.getElementById("meal-day-heading").textContent = dayPlan.label.toUpperCase();
+      document.getElementById("meal-day-heading").textContent = plan.label.toUpperCase();
 
       // Render 5 Timed Meal Cards
-      document.getElementById("timed-meals-container").innerHTML = dayPlan.slots.map(slot => {
-        const checked = !!rec.checkedSlots[slot.slotId];
-        const optIdx = rec.slotOptionIdx[slot.slotId] || 0;
-        const activeOpt = slot.options[optIdx] || slot.options[0];
+      document.getElementById("timed-meals-container").innerHTML = plan.slots.map(slot => {
+        const key = `${dayCode}_${slot.slotId}`;
+        const checked = !!rec.checkedSlots[key];
+        const optIdx = rec.selectedOptionBySlot[key] || 0;
+        const chosen = slot.options[optIdx] || slot.options[0];
 
         return `
-          <div class="exo-card p-4 flex items-start justify-between gap-3">
-            <div class="flex items-start gap-3.5 min-w-0 flex-1">
-              <button
-                onclick="toggleTimedMealCheck('${slot.slotId}')"
-                aria-label="Check off ${slot.label}"
-                class="mt-0.5 w-7 h-7 rounded-xl flex items-center justify-center shrink-0 transition active:scale-90"
-                style="border: 1.5px solid ${checked ? "var(--exo-green)" : "rgba(255, 255, 255, 0.22)"}; background-color: ${checked ? "var(--exo-green)" : "var(--exo-well)"}; color: #000000;"
-              >
-                ${checked ? `<svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>` : ""}
-              </button>
-
-              <div class="min-w-0 flex-1 cursor-pointer" onclick="toggleTimedMealCheck('${slot.slotId}')">
-                <div class="flex items-center gap-2">
-                  <span class="font-brand text-[10px] font-bold tabular-nums px-2 py-0.5 rounded exo-well" style="color: var(--exo-ice);">${slot.time}</span>
-                  <span class="text-[11px] font-semibold uppercase tracking-wider truncate" style="color: var(--exo-text-secondary);">${slot.label}</span>
-                </div>
-                <div class="font-brand text-[15px] font-bold mt-1.5 leading-snug ${checked ? "line-through text-zinc-500" : "text-white"}">
-                  ${activeOpt.name}
-                </div>
-                <div class="text-[12px] mt-0.5 leading-relaxed" style="color: var(--exo-text-secondary);">
-                  ${activeOpt.sub}
-                </div>
-              </div>
-            </div>
-
-            <div class="text-right shrink-0 flex flex-col items-end justify-between">
-              <div class="tabular-nums">
-                <div class="font-brand text-[15px] font-extrabold" style="color: var(--exo-green);">${activeOpt.prot}g P</div>
-                <div class="text-[11px]" style="color: var(--exo-text-secondary);">${activeOpt.kcal} kcal</div>
-              </div>
-              ${slot.options.length > 1 ? `
+          <div class="exo-card p-3.5 flex items-center justify-between gap-3">
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2">
+                <span class="font-brand text-[11px] font-bold tabular-nums px-2 py-0.5 rounded exo-well" style="color: var(--exo-amber);">
+                  ${slot.time}
+                </span>
+                <span class="text-[11px] font-semibold truncate" style="color: var(--exo-text-secondary);">
+                  ${slot.label}
+                </span>
                 <button
-                  onclick="cycleTimedMealOption('${slot.slotId}', ${slot.options.length})"
-                  class="mt-2.5 h-7 px-2.5 rounded-lg exo-well text-[11px] font-semibold active:scale-95 transition"
+                  onclick="swapTimedMealOption('${slot.slotId}')"
+                  class="ml-auto text-[11px] font-semibold px-2 py-0.5 rounded exo-well active:scale-95 transition shrink-0"
                   style="color: var(--exo-blue);"
                 >
                   Swap ↻
                 </button>
-              ` : ""}
+              </div>
+
+              <div class="font-brand text-[15px] font-bold text-white mt-1.5 leading-snug">${chosen.name}</div>
+              <div class="flex items-center gap-2 mt-1 text-[12px] tabular-nums" style="color: var(--exo-text-secondary);">
+                <span class="font-semibold" style="color: var(--exo-green);">${chosen.prot}g Protein</span>
+                <span>·</span>
+                <span>${chosen.kcal} kcal</span>
+              </div>
             </div>
+
+            <button
+              onclick="toggleTimedMealCheck('${slot.slotId}')"
+              aria-label="Check off ${slot.label}"
+              class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 transition active:scale-90"
+              style="background-color: ${checked ? "var(--exo-green)" : "var(--exo-well)"}; color: ${checked ? "#000000" : "var(--exo-text-muted)"};"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </button>
           </div>
         `;
       }).join("");
 
+      // Extra Custom Items
       const extraCard = document.getElementById("extra-meals-card");
-      const extraList = document.getElementById("extra-meals-list");
-      if (rec.extraMeals && rec.extraMeals.length > 0) {
+      if (rec.extraMeals.length > 0) {
         extraCard.classList.remove("hidden");
-        extraList.innerHTML = rec.extraMeals.map(m => `
-          <button onclick="removeExtraMeal(${m.id})" class="h-8 px-3 rounded-lg exo-well text-[12px] text-white flex items-center gap-2">
-            <span>${m.title}</span>
-            <span class="font-bold" style="color: var(--exo-green);">+${m.prot}g</span>
-            <span style="color: var(--exo-text-secondary);">✕</span>
-          </button>
+        document.getElementById("extra-meals-list").innerHTML = rec.extraMeals.map(m => `
+          <span class="px-2.5 py-1 rounded-lg exo-well text-[12px] text-white tabular-nums">
+            ${m.name} · <strong style="color: var(--exo-green);">${m.prot}g</strong> (${m.kcal} kcal)
+          </span>
         `).join("");
       } else {
         extraCard.classList.add("hidden");
       }
 
-      // Timed Hydration View
-      const notifToggle = document.getElementById("water-notif-toggle");
-      const notifKnob = document.getElementById("water-notif-knob");
+      // Hydration Subtab Rendering
+      const toggleBtn = document.getElementById("water-notif-toggle");
+      const knob = document.getElementById("water-notif-knob");
       if (state.waterAlertsEnabled) {
-        notifToggle.style.backgroundColor = "var(--exo-green)";
-        notifKnob.classList.add("translate-x-5");
-        notifKnob.classList.remove("translate-x-0");
+        toggleBtn.style.backgroundColor = "var(--exo-green)";
+        knob.classList.add("translate-x-5");
       } else {
-        notifToggle.style.backgroundColor = "rgba(120, 120, 128, 0.32)";
-        notifKnob.classList.remove("translate-x-5");
-        notifKnob.classList.add("translate-x-0");
+        toggleBtn.style.backgroundColor = "rgba(120, 120, 128, 0.32)";
+        knob.classList.remove("translate-x-5");
       }
 
-      const nextSlot = getNextUnloggedWaterSlot(rec);
+      const nextWater = WATER_SCHEDULE.find(w => !rec.waterChecked[w.id]);
       const nextTextEl = document.getElementById("next-water-slot-text");
       const nextBtnEl = document.getElementById("log-next-water-btn");
-      if (nextSlot) {
-        nextTextEl.textContent = `${nextSlot.time} · ${nextSlot.ml} ml (${nextSlot.title})`;
-        nextBtnEl.textContent = `+${nextSlot.ml}ml`;
+      if (nextWater) {
+        nextTextEl.textContent = `${nextWater.time} · ${nextWater.ml} ml (${nextWater.title})`;
+        nextBtnEl.textContent = `+${nextWater.ml}ml`;
       } else {
         nextTextEl.textContent = "All 8 Hydration Checkpoints Complete (3.5L)";
         nextBtnEl.textContent = "Done ✓";
@@ -2375,48 +2255,47 @@
       document.getElementById("water-slots-counter").textContent = `${totalWaterMl.toLocaleString()} / 3,500 ml`;
 
       document.getElementById("water-schedule-list").innerHTML = WATER_SCHEDULE.map(w => {
-        const done = !!rec.checkedWater[w.id];
+        const done = !!rec.waterChecked[w.id];
         return `
-          <button onclick="toggleWaterSlot('${w.id}')" class="w-full px-4 py-3.5 text-left flex items-center justify-between gap-3 active:bg-white/5 transition">
-            <div class="flex items-center gap-3.5 min-w-0">
-              <div class="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style="border: 1.5px solid ${done ? "var(--exo-teal)" : "rgba(255, 255, 255, 0.25)"}; background-color: ${done ? "var(--exo-teal)" : "transparent"}; color: #000000;">
-                ${done ? `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>` : ""}
+          <div onclick="toggleWaterSlot('${w.id}')" class="px-4 py-3 flex items-center justify-between gap-3 cursor-pointer active:bg-white/5 transition">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2">
+                <span class="font-brand text-[12px] font-bold tabular-nums" style="color: ${done ? "var(--exo-teal)" : "var(--exo-text-primary)"};">
+                  ${w.time}
+                </span>
+                <span class="text-[11px] font-bold tabular-nums px-2 py-0.5 rounded exo-well" style="color: var(--exo-teal);">
+                  +${w.ml} ml
+                </span>
               </div>
-              <div class="min-w-0">
-                <div class="flex items-center gap-2">
-                  <span class="font-brand text-[11px] font-bold tabular-nums" style="color: var(--exo-teal);">${w.time}</span>
-                  <span class="text-[14px] font-semibold ${done ? "line-through text-zinc-500" : "text-white"} truncate">${w.title}</span>
-                </div>
-                <div class="text-[12px] truncate mt-0.5" style="color: var(--exo-text-secondary);">${w.sub}</div>
-              </div>
+              <div class="text-[13px] font-semibold text-white mt-0.5">${w.title}</div>
+              <div class="text-[11px]" style="color: var(--exo-text-secondary);">${w.sub}</div>
             </div>
-            <span class="font-brand text-[14px] font-bold tabular-nums shrink-0" style="color: ${done ? "var(--exo-teal)" : "var(--exo-text-secondary)"};">
-              +${w.ml} ml
-            </span>
-          </button>
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style="background-color: ${done ? "var(--exo-teal)" : "var(--exo-well)"}; color: ${done ? "#000" : "var(--exo-text-muted)"};">
+              ✓
+            </div>
+          </div>
         `;
       }).join("");
 
-      document.getElementById("steps-val").textContent = rec.steps.toLocaleString();
-
-      let doneHabits = 0;
+      // Steps & Habits Checklist
+      document.getElementById("steps-val").textContent = (rec.steps || 0).toLocaleString();
+      let habitDoneCount = 0;
       document.getElementById("reminders-list").innerHTML = DAILY_HABITS.map(h => {
-        const checked = !!rec.habits[h.id];
-        if (checked) doneHabits++;
+        const done = !!rec.habits[h.id];
+        if (done) habitDoneCount++;
         return `
-          <button onclick="toggleHabitCheck('${h.id}')" class="w-full px-4 py-3.5 text-left flex items-center gap-3.5 active:bg-white/5 transition">
-            <div class="w-6 h-6 rounded-lg flex items-center justify-center shrink-0" style="border: 1.5px solid ${checked ? "var(--exo-green)" : "rgba(255, 255, 255, 0.25)"}; background-color: ${checked ? "var(--exo-green)" : "transparent"}; color: #000000;">
-              ${checked ? `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>` : ""}
+          <div onclick="toggleHabitCheck('${h.id}')" class="px-4 py-3 flex items-center justify-between gap-3 cursor-pointer active:bg-white/5 transition">
+            <div class="min-w-0">
+              <div class="text-[13px] font-semibold text-white">${h.title}</div>
+              <div class="text-[11px]" style="color: var(--exo-text-secondary);">${h.sub}</div>
             </div>
-            <div class="flex-1 min-w-0">
-              <div class="text-[14px] font-semibold ${checked ? "line-through text-zinc-500" : "text-white"}">${h.title}</div>
-              <div class="text-[12px] mt-0.5" style="color: var(--exo-text-secondary);">${h.sub}</div>
+            <div class="w-8 h-8 rounded-xl flex items-center justify-center shrink-0" style="background-color: ${done ? "var(--exo-green)" : "var(--exo-well)"}; color: ${done ? "#000" : "var(--exo-text-muted)"};">
+              ✓
             </div>
-          </button>
+          </div>
         `;
       }).join("");
-
-      document.getElementById("habit-score-label").textContent = `${doneHabits} of ${DAILY_HABITS.length}`;
+      document.getElementById("habit-score-label").textContent = `${habitDoneCount} of ${DAILY_HABITS.length}`;
     }
 
     /* =========================================================================
@@ -2425,154 +2304,113 @@
     function renderCoachView() {
       const split = WORKOUT_SPLITS[state.activeDay];
       document.getElementById("coach-split-label").textContent = split.code;
-      document.getElementById("audit-day-indicator").textContent = split.name;
+      document.getElementById("audit-day-indicator").textContent = split.code;
 
       let readyCount = 0;
-      const matrixHtml = split.slots.map(slot => {
+      const rowsHtml = split.slots.map(slot => {
         const opt = getActiveOption(slot);
         const rec = getExerciseRecord(slot, opt);
         const m = computeMasteryMetrics(slot, opt, rec);
-        if (m.readyToGraduate) readyCount++;
+        if (m.allSetsHitMaxReps) readyCount++;
 
         return `
-          <div class="px-4 py-3.5 flex items-center justify-between gap-3">
+          <div class="px-4 py-3 flex items-center justify-between gap-3">
             <div class="min-w-0">
-              <div class="flex items-center gap-2">
-                <span class="font-brand text-[10px] font-bold px-1.5 py-0.5 rounded exo-well" style="color: var(--exo-blue);">T${opt.tier || 1}</span>
-                <span class="font-brand text-[14px] font-bold text-white truncate">${opt.name}</span>
-              </div>
-              <div class="text-[12px] mt-0.5 tabular-nums" style="color: var(--exo-text-secondary);">
-                Current: <span class="text-white font-semibold">${m.currentKg} kg</span> → Mastery: <span class="text-white font-semibold">${opt.masteryKg} kg</span>
+              <div class="font-brand text-[14px] font-bold text-white truncate">${opt.name}</div>
+              <div class="text-[11px] mt-0.5" style="color: var(--exo-text-secondary);">
+                Tier ${opt.tier} · ${m.currentKg} kg / ${opt.masteryKg} kg Mastery
               </div>
             </div>
-            <div class="text-right shrink-0 tabular-nums">
-              <div class="font-brand text-[13px] font-bold" style="color: ${m.readyToGraduate ? "var(--exo-green)" : "var(--exo-ice)"};">
-                ${m.readyToGraduate ? "Upgrade Ready ↑" : m.pct + "%"}
-              </div>
-              <div class="text-[11px]" style="color: var(--exo-text-secondary);">
-                ${m.gate1Load && m.gate2Reps ? "Verify 1 more" : `${slot.maxReps} reps goal`}
-              </div>
-            </div>
+            <span class="text-[11px] font-bold tabular-nums px-2.5 py-1 rounded-md exo-well shrink-0" style="color: ${m.allSetsHitMaxReps ? "var(--exo-green)" : "var(--exo-blue)"};">
+              ${m.pct}%
+            </span>
           </div>
         `;
       }).join("");
 
-      document.getElementById("progression-audit-list").innerHTML = matrixHtml;
-      document.getElementById("coach-ready-count").textContent = readyCount > 0
-        ? `${readyCount} Tier Upgrade(s) Ready`
-        : "3-Gate Tracking Active";
+      document.getElementById("coach-ready-count").textContent = `${readyCount}/${split.slots.length} Ready for +Kg`;
+      document.getElementById("progression-audit-list").innerHTML = rowsHtml;
     }
 
-    async function askAICoach(mode) {
-      const box = document.getElementById("ai-coach-response");
-      const inputEl = document.getElementById("ai-coach-input");
+    function askAICoach(topic) {
       const split = WORKOUT_SPLITS[state.activeDay];
+      const box = document.getElementById("ai-coach-response");
 
-      const summaryLines = split.slots.map(slot => {
-        const opt = getActiveOption(slot);
-        const rec = getExerciseRecord(slot, opt);
-        const m = computeMasteryMetrics(slot, opt, rec);
-        return `${opt.name} (T${opt.tier}): ${m.currentKg}/${opt.masteryKg}kg, ${m.pct}% Mastery`;
-      }).join("; ");
-
-      let userPrompt = "";
-      if (mode === "audit") {
-        userPrompt = `Audit my current ${split.name} loads: ${summaryLines}. Which movement is closest to Tier graduation and how should I approach my next session?`;
-      } else if (mode === "machines") {
-        userPrompt = `Give me biomechanics tips for using dumbbells and machines on ${split.name} so my joints stay 100% protected while maximizing hypertrophy.`;
-      } else if (mode === "office") {
-        userPrompt = `Give me a 3-point execution strategy for hitting 110g+ protein and 3.5L water at my office desk without meal-prep stress.`;
-      } else if (mode === "fatigue") {
-        userPrompt = `I had a long workday at the office and feel low on energy before ${split.name}. How should I adjust today's sets and feel gauge?`;
+      if (topic === "audit") {
+        const lines = split.slots.slice(0, 3).map(slot => {
+          const opt = getActiveOption(slot);
+          const rec = getExerciseRecord(slot, opt);
+          return `• <strong>${opt.name}</strong>: Currently at ${rec.sets[0].kg} kg. Hit ${slot.maxReps} reps across all ${slot.sets} sets to unlock +${slot.stepKg} kg.`;
+        }).join("<br/>");
+        box.innerHTML = `<div class="font-brand font-bold text-white mb-1">${split.name} Overload Audit</div>${lines}`;
+      } else if (topic === "machines") {
+        box.innerHTML = `<div class="font-brand font-bold text-white mb-1">Tendon-Safe Return Protocol</div>Stick to Tier 1 Dumbbell & Machine variations for your first 4–6 weeks. Controlled 2-second lowering phases protect your shoulders, elbows, and lower back while rebuilding muscle memory.`;
+      } else if (topic === "office") {
+        box.innerHTML = `<div class="font-brand font-bold text-white mb-1">Office 110g+ Protein Strategy</div>Keep a box of 20g Protein Bars and Amul High Protein Buttermilk at your work desk for the 11:30 AM & 05:15 PM slots—that locks in 45g protein before your tiffin lunch and dinner.`;
+      } else if (topic === "fatigue") {
+        box.innerHTML = `<div class="font-brand font-bold text-white mb-1">Low-Energy Workday Adjustment</div>On hectic office days, keep your current working weight and log the bottom of the rep range (e.g. ${split.slots[0].minReps} reps). EXO will hold your load steady without penalty.`;
       } else {
-        userPrompt = inputEl.value.trim();
-        if (!userPrompt) return;
-        inputEl.value = "";
+        const input = document.getElementById("ai-coach-input");
+        const q = (input.value || "").trim();
+        if (!q) return;
+        input.value = "";
+        box.innerHTML = `<div class="font-brand font-bold text-white mb-1">EXO Coach Response</div>For <em>"${q}"</em>: Focus on hitting the top rep target (${split.slots[0].maxReps} reps) on all sets before adding load, and pair your 17:15 pre-gym whey/bar with 450 ml water.`;
       }
-
-      box.innerHTML = `<span style="color: var(--exo-blue);">EXO Intelligence analyzing telemetry...</span>`;
-
-      // Instant deterministic high-precision coaching response
-      setTimeout(() => {
-        if (mode === "audit") {
-          box.innerHTML = `<strong class="text-white font-brand">OVERLOAD AUDIT (${split.code.toUpperCase()}):</strong><br>Your foundation loads are calibrated for tendon remodeling. Focus on hitting <strong class="text-white">max target reps</strong> across all sets with <strong class="text-white">Solid Form</strong>. Each completed session adds <strong class="text-white">+1.25 to +2.5 kg</strong> until you cross the Mastery Load threshold twice to unlock Tier 2.`;
-        } else if (mode === "machines") {
-          box.innerHTML = `<strong class="text-white font-brand">MACHINE & DUMBBELL BIOMECHANICS:</strong><br>• Control the lowering (eccentric) phase for a full <strong class="text-white">2–3 seconds</strong>.<br>• On Dumbbell Presses, use a <strong class="text-white">30°–45° scapular angle</strong> rather than flaring elbows out 90°.<br>• On Chest-Supported Rows & Pulldowns, initiate every rep by depressing your shoulder blades first.`;
-        } else if (mode === "office") {
-          box.innerHTML = `<strong class="text-white font-brand">OFFICE PROTEIN & 3.5L PROTOCOL:</strong><br>• <strong class="text-white">11:30 Desk Anchor:</strong> Keep a box of 20g Protein Bars in your office drawer.<br>• <strong class="text-white">13:30 Tiffin:</strong> 150g Chicken Breast or 120g Low-Fat Paneer + Curd delivers ~35–42g protein.<br>• <strong class="text-white">16:30 Pre-Gym:</strong> Drink 450 ml water + 5g Creatine 45 mins before leaving work.`;
-        } else if (mode === "fatigue") {
-          box.innerHTML = `<strong class="text-white font-brand">LOW-ENERGY OFFICE DAY PROTOCOL:</strong><br>Keep your current working weights unchanged, leave <strong class="text-white">2 reps in reserve (2 RIR)</strong>, and mark your feel as <strong class="text-white">Max Effort</strong> so EXO holds your loads steady for next week without forcing a weight jump.`;
-        } else {
-          box.innerHTML = `<strong class="text-white font-brand">EXO ADVISOR:</strong><br>For <strong class="text-white">"${userPrompt}"</strong> — prioritize strict 2-second eccentric control, stay inside your 1,650 kcal / 110g+ protein window, and let the 3-Gate Mastery bar dictate when to increase load.`;
-        }
-      }, 220);
     }
 
     /* =========================================================================
-       11. TAB 4: PROGRESS, BODY WEIGHT CHART & BACKUP
+       11. TAB 4: PROGRESS & BACKUP CONTROLLERS
     ========================================================================= */
     function addWeightEntry() {
       const input = document.getElementById("weight-log-input");
       const val = parseFloat(input.value);
-      if (isNaN(val) || val < 35 || val > 220) {
+      if (!val || val < 35 || val > 200) {
         notifyUser("Enter a valid weight in kg", "#FF453A");
         return;
       }
-      const d = todayISO();
-      const idx = state.weightLog.findIndex(w => w.date === d);
-      if (idx >= 0) state.weightLog[idx].kg = val;
-      else state.weightLog.push({ date: d, kg: val });
-
-      state.weightLog.sort((a, b) => a.date.localeCompare(b.date));
+      state.weightLog.push({ date: todayISO(), kg: Math.round(val * 10) / 10 });
       input.value = "";
       persistState();
       renderProgressView();
-      notifyUser(`Logged morning weight: ${val} kg`);
+      notifyUser(`Logged ${val.toFixed(1)} kg`, "#30D158");
     }
 
     function renderProgressView() {
-      const history = state.weightLog;
-      const pill = document.getElementById("weight-change-pill");
-      const currentKgEl = document.getElementById("prog-current-kg");
-      const sparkBox = document.getElementById("weight-sparkline-box");
-      const listEl = document.getElementById("weight-entries-list");
+      const logs = state.weightLog || [];
+      const latest = logs.length > 0 ? logs[logs.length - 1].kg : 78.0;
+      const start = logs.length > 0 ? logs[0].kg : 78.0;
+      const diff = (latest - start).toFixed(1);
 
-      if (history.length > 0) {
-        const latest = history[history.length - 1].kg;
-        currentKgEl.textContent = `${latest.toFixed(1)} kg`;
-        const delta = (latest - history[0].kg).toFixed(1);
-        pill.textContent = `${delta > 0 ? "+" : ""}${delta} kg`;
-        pill.style.color = delta <= 0 ? "var(--exo-green)" : "var(--exo-amber)";
+      document.getElementById("prog-current-kg").textContent = `${latest.toFixed(1)} kg`;
+      document.getElementById("weight-change-pill").textContent = `${diff <= 0 ? diff : "+" + diff} kg`;
 
-        if (history.length >= 2) {
-          const vals = history.map(h => h.kg);
-          const minV = Math.min(...vals) - 0.4;
-          const maxV = Math.max(...vals) + 0.4;
-          const span = Math.max(1, maxV - minV);
-          const w = 320, h = 92, padX = 16, padY = 14;
+      // Render SVG Sparkline
+      const box = document.getElementById("weight-sparkline-box");
+      if (logs.length >= 2) {
+        const vals = logs.map(l => l.kg);
+        const minV = Math.min(...vals) - 0.5;
+        const maxV = Math.max(...vals) + 0.5;
+        const w = 320;
+        const h = 80;
+        const pts = vals.map((v, i) => {
+          const x = (i / (vals.length - 1)) * (w - 20) + 10;
+          const y = h - 10 - ((v - minV) / Math.max(0.5, maxV - minV)) * (h - 20);
+          return `${x.toFixed(1)},${y.toFixed(1)}`;
+        }).join(" ");
 
-          const pts = history.map((item, i) => ({
-            x: padX + (i / (history.length - 1)) * (w - padX * 2),
-            y: h - padY - ((item.kg - minV) / span) * (h - padY * 2)
-          }));
-
-          sparkBox.innerHTML = `
-            <svg viewBox="0 0 ${w} ${h}" class="w-full h-full overflow-visible">
-              <polyline fill="none" stroke="#F4F4F6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="${pts.map(p => `${p.x},${p.y}`).join(" ")}" />
-              ${pts.map(p => `<circle cx="${p.x}" cy="${p.y}" r="4" fill="#0A84FF" stroke="#111113" stroke-width="2" />`).join("")}
-            </svg>
-          `;
-        } else {
-          sparkBox.innerHTML = `<span class="text-[12px]" style="color: var(--exo-text-secondary);">Baseline: ${history[0].kg} kg</span>`;
-        }
-
-        listEl.innerHTML = [...history].reverse().map(entry => `
-          <div class="py-2.5 flex items-center justify-between text-[13px] tabular-nums">
-            <span style="color: var(--exo-text-secondary);">${entry.date}</span>
-            <span class="font-brand font-bold text-white">${entry.kg.toFixed(1)} kg</span>
-          </div>
-        `).join("");
+        box.innerHTML = `
+          <svg viewBox="0 0 ${w} ${h}" class="w-full h-full overflow-visible">
+            <polyline fill="none" stroke="#30D158" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="${pts}" />
+          </svg>
+        `;
       }
+
+      document.getElementById("weight-entries-list").innerHTML = logs.slice().reverse().map(item => `
+        <div class="py-2.5 flex items-center justify-between text-[13px] tabular-nums">
+          <span style="color: var(--exo-text-secondary);">${item.date}</span>
+          <span class="font-brand font-bold text-white">${item.kg.toFixed(1)} kg</span>
+        </div>
+      `).join("");
     }
 
     function copyBackupJSON() {
@@ -2581,7 +2419,7 @@
         area.value = JSON.stringify(state, null, 2);
         area.select();
         document.execCommand("copy");
-        notifyUser("EXO Backup JSON copied to clipboard", "#0A84FF");
+        notifyUser("Backup JSON copied to clipboard", "#0A84FF");
       } catch (e) {
         notifyUser("Could not copy backup", "#FF453A");
       }
@@ -2592,7 +2430,7 @@
       const btn = document.getElementById("reset-btn");
       if (!confirmReset) {
         confirmReset = true;
-        btn.querySelector("span").textContent = "Confirm Reset";
+        btn.querySelector("span").textContent = "Tap Again to Confirm";
         setTimeout(() => {
           confirmReset = false;
           btn.querySelector("span").textContent = "Reset Defaults";
@@ -2603,19 +2441,19 @@
         persistState();
         confirmReset = false;
         switchView("workouts");
-        notifyUser("Reset to tendon-safe foundation loads", "#30D158");
+        notifyUser("Reset to tendon-safe beginner defaults", "#30D158");
       }
     }
 
+    /* =========================================================================
+       12. INITIALIZATION & SAFE SERVICE WORKER REGISTRATION
+    ========================================================================= */
     window.onload = function () {
       switchView(state.currentView || "workouts");
     };
 
-    if (
-      'serviceWorker' in navigator &&
-      (window.location.protocol === 'https:' || window.location.protocol === 'http:')
-    ) {
-      navigator.serviceWorker.register('./sw.js').catch(() => {});
+    if ("serviceWorker" in navigator && (window.location.protocol === "https:" || window.location.protocol === "http:")) {
+      navigator.serviceWorker.register("./sw.js").catch(() => {});
     }
   </script>
 </body>

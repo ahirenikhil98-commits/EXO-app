@@ -1,0 +1,2480 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Fitness — Mastery & Office Fuel Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root {
+      --ios-bg: #000000;
+      --ios-card: #1C1C1E;
+      --ios-elevated: #2C2C2E;
+      --ios-tertiary: #3A3A3C;
+      --ios-separator: rgba(255, 255, 255, 0.12);
+      --ios-blue: #0A84FF;
+      --ios-green: #30D158;
+      --ios-orange: #FF9F0A;
+      --ios-red: #FF453A;
+      --ios-purple: #BF5AF2;
+      --ios-teal: #64D2FF;
+      --ios-label-secondary: rgba(235, 235, 245, 0.6);
+      --ios-label-tertiary: rgba(235, 235, 245, 0.3);
+    }
+
+    * {
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: var(--ios-bg);
+      color: #FFFFFF;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior-y: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ios-blur-chrome {
+      background-color: rgba(28, 28, 30, 0.78);
+      -webkit-backdrop-filter: saturate(180%) blur(20px);
+      backdrop-filter: saturate(180%) blur(20px);
+    }
+
+    .ios-card {
+      background-color: var(--ios-card);
+      border-radius: 14px;
+      border: 0.5px solid var(--ios-separator);
+    }
+
+    .ios-well {
+      background-color: var(--ios-elevated);
+      border-radius: 9px;
+    }
+
+    .ios-hairline-t {
+      border-top: 0.5px solid var(--ios-separator);
+    }
+
+    .ios-hairline-b {
+      border-bottom: 0.5px solid var(--ios-separator);
+    }
+
+    .ios-large-title {
+      font-size: 32px;
+      line-height: 38px;
+      font-weight: 700;
+      letter-spacing: -0.022em;
+    }
+
+    /* Segmented Control */
+    .ios-segmented {
+      background-color: rgba(118, 118, 128, 0.24);
+      border-radius: 9px;
+      padding: 2px;
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .ios-segment-btn {
+      position: relative;
+      z-index: 2;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 6px 4px;
+      border-radius: 7px;
+      text-align: center;
+      transition: color 0.18s ease, background-color 0.18s ease;
+      color: rgba(235, 235, 245, 0.65);
+    }
+
+    .ios-segment-btn.active {
+      background-color: #636366;
+      color: #FFFFFF;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 3px 1px rgba(0, 0, 0, 0.04);
+    }
+
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    /* Bottom Sheet Transition */
+    #sheet-backdrop {
+      transition: opacity 0.24s ease;
+    }
+    #sheet-panel {
+      transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    .ring-transition {
+      transition: stroke-dashoffset 0.45s cubic-bezier(0.32, 0.72, 0, 1);
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+
+    /* Day Pill Scrollbar Hide */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex justify-center">
+
+  <!-- iPhone 15 Pro Viewport Container -->
+  <div class="w-full max-w-[430px] min-h-screen flex flex-col relative pb-32 bg-black">
+
+    <!-- Top Sticky iOS Navigation Header -->
+    <header class="sticky top-0 z-30 ios-blur-chrome ios-hairline-b px-4 pt-3 pb-3">
+      <div class="flex items-center justify-between mb-1">
+        <span id="header-subtitle" class="text-[11px] font-semibold uppercase tracking-wider" style="color: var(--ios-label-secondary);">
+          MASTERY ENGINE · RETURN TO GYM
+        </span>
+        <button onclick="openMasteryRulesSheet()" class="text-[12px] font-medium px-2.5 py-1 rounded-full flex items-center gap-1.5 active:opacity-70 transition" style="background-color: rgba(10, 132, 255, 0.14); color: var(--ios-blue);">
+          <span class="w-1.5 h-1.5 rounded-full" style="background-color: var(--ios-blue);"></span>
+          <span>How Mastery Works</span>
+        </button>
+      </div>
+      <div class="flex items-baseline justify-between">
+        <h1 id="header-large-title" class="ios-large-title text-white">Workouts</h1>
+        <span id="header-session-counter" class="text-[13px] font-medium tabular-nums" style="color: var(--ios-label-secondary);">
+          4 Days / Wk
+        </span>
+      </div>
+    </header>
+
+    <!-- Subtle Top iOS Banner Notification -->
+    <div id="ios-toast" class="fixed top-14 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-200 transform -translate-y-2 w-[calc(100%-32px)] max-w-[398px]">
+      <div class="ios-blur-chrome px-4 py-2.5 rounded-2xl border border-white/15 shadow-2xl flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <span id="ios-toast-dot" class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: var(--ios-green);"></span>
+          <span id="ios-toast-text" class="text-[13px] font-medium text-white truncate">Saved</span>
+        </div>
+        <span class="text-[11px] font-semibold uppercase tracking-wider shrink-0" style="color: var(--ios-label-secondary);">Now</span>
+      </div>
+    </div>
+
+    <!-- =========================================================
+         TAB 1: WORKOUTS (Default Tab) — 3-GATE MASTERY & TIER ENGINE
+    ========================================================== -->
+    <main id="view-workouts" class="flex-1 px-4 pt-3.5 space-y-4">
+
+      <!-- iOS Segmented Control for 4-Day Split -->
+      <div class="ios-segmented" role="tablist">
+        <button onclick="selectDay(1)" id="seg-day-1" class="ios-segment-btn active">Push</button>
+        <button onclick="selectDay(2)" id="seg-day-2" class="ios-segment-btn">Pull</button>
+        <button onclick="selectDay(3)" id="seg-day-3" class="ios-segment-btn">Legs</button>
+        <button onclick="selectDay(4)" id="seg-day-4" class="ios-segment-btn">Condition</button>
+      </div>
+
+      <!-- Clean Day Summary & Mastery Overview Row -->
+      <div class="ios-card px-4 py-3 flex items-center justify-between">
+        <div class="min-w-0 pr-2">
+          <div class="flex items-center gap-2">
+            <div id="day-focus-title" class="text-[15px] font-semibold text-white truncate">Day 1 · Push & Core</div>
+            <span id="day-tier-badge" class="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full" style="background-color: rgba(48, 209, 88, 0.16); color: var(--ios-green);">Tier 1</span>
+          </div>
+          <div id="day-focus-note" class="text-[12px] mt-0.5 truncate" style="color: var(--ios-label-secondary);">
+            Hit target weight + max reps + Solid feel twice to unlock Next Tier
+          </div>
+        </div>
+        <div class="text-right shrink-0 pl-2">
+          <div id="day-progress-fraction" class="text-[17px] font-bold tabular-nums" style="color: var(--ios-blue);">0/23</div>
+          <div class="text-[11px] font-medium" style="color: var(--ios-label-secondary);">Sets Done</div>
+        </div>
+      </div>
+
+      <!-- Exercise Grouped Cards Container -->
+      <div id="workout-cards-list" class="space-y-3.5"></div>
+
+      <!-- Complete Workout Primary Action -->
+      <div class="pt-1 pb-4 space-y-2">
+        <button onclick="completeWorkoutSession()" class="w-full py-3.5 rounded-[14px] font-semibold text-[16px] text-white active:opacity-80 transition flex items-center justify-center gap-2" style="background-color: var(--ios-blue);">
+          <span>Complete Session & Evaluate Mastery</span>
+        </button>
+        <p class="text-center text-[12px]" style="color: var(--ios-label-secondary);">
+          Automatically increments weights (+1.25 to +2.5 kg) & checks 3-Gate Tier Mastery.
+        </p>
+      </div>
+    </main>
+
+    <!-- =========================================================
+         TAB 2: FUEL & HYDRATION — 7-DAY OFFICE PLANNER + TIMED WATER
+    ========================================================== -->
+    <main id="view-fuel" class="hidden flex-1 px-4 pt-3.5 space-y-4">
+
+      <!-- Sub-Segmented View Switcher: Meal Plan vs Timed Water & Habits -->
+      <div class="ios-segmented" style="grid-template-columns: repeat(2, 1fr);">
+        <button onclick="switchFuelSubtab('meals')" id="subtab-meals" class="ios-segment-btn active">7-Day Office Meals</button>
+        <button onclick="switchFuelSubtab('water')" id="subtab-water" class="ios-segment-btn">Timed Hydration (3.5L)</button>
+      </div>
+
+      <!-- Apple Health-Style Macro & Hydration Strip -->
+      <section class="ios-card p-3.5">
+        <div class="grid grid-cols-3 gap-2.5">
+          <!-- Calories -->
+          <div class="ios-well p-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-medium" style="color: var(--ios-label-secondary);">Calories</span>
+              <span class="w-1.5 h-1.5 rounded-full" style="background-color: var(--ios-orange);"></span>
+            </div>
+            <div class="mt-1 tabular-nums">
+              <span id="fuel-cal-val" class="text-[18px] font-bold text-white">0</span>
+              <span id="fuel-cal-max" class="text-[11px]" style="color: var(--ios-label-secondary);">/1650</span>
+            </div>
+            <div class="w-full h-1 rounded-full mt-1.5 overflow-hidden bg-white/10">
+              <div id="fuel-cal-bar" class="h-full rounded-full transition-all duration-300" style="width: 0%; background-color: var(--ios-orange);"></div>
+            </div>
+          </div>
+
+          <!-- Protein -->
+          <div class="ios-well p-2.5">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-medium" style="color: var(--ios-label-secondary);">Protein</span>
+              <span class="w-1.5 h-1.5 rounded-full" style="background-color: var(--ios-green);"></span>
+            </div>
+            <div class="mt-1 tabular-nums">
+              <span id="fuel-prot-val" class="text-[18px] font-bold text-white">0g</span>
+              <span class="text-[11px]" style="color: var(--ios-label-secondary);">/115g</span>
+            </div>
+            <div class="w-full h-1 rounded-full mt-1.5 overflow-hidden bg-white/10">
+              <div id="fuel-prot-bar" class="h-full rounded-full transition-all duration-300" style="width: 0%; background-color: var(--ios-green);"></div>
+            </div>
+          </div>
+
+          <!-- Water -->
+          <div onclick="switchFuelSubtab('water')" class="ios-well p-2.5 cursor-pointer active:opacity-80">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-medium" style="color: var(--ios-label-secondary);">Water</span>
+              <span class="w-1.5 h-1.5 rounded-full" style="background-color: var(--ios-teal);"></span>
+            </div>
+            <div class="mt-1 tabular-nums">
+              <span id="fuel-water-top" class="text-[18px] font-bold text-white">0.0L</span>
+              <span class="text-[11px]" style="color: var(--ios-label-secondary);">/3.5L</span>
+            </div>
+            <div class="w-full h-1 rounded-full mt-1.5 overflow-hidden bg-white/10">
+              <div id="fuel-water-bar" class="h-full rounded-full transition-all duration-300" style="width: 0%; background-color: var(--ios-teal);"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SUBVIEW A: 7-DAY OFFICE MEAL TIMELINE -->
+      <div id="fuel-subview-meals" class="space-y-3.5">
+
+        <!-- 7-Day Horizontal Selector (Mon - Sun) -->
+        <div class="flex items-center justify-between gap-1.5 overflow-x-auto no-scrollbar py-0.5" id="weekday-pills-row"></div>
+
+        <!-- Day Context Header -->
+        <div class="flex items-center justify-between px-1">
+          <div class="flex items-center gap-2">
+            <span id="meal-day-heading" class="text-[13px] font-semibold uppercase tracking-wider" style="color: var(--ios-label-secondary);">MONDAY · OFFICE DAY</span>
+          </div>
+          <button onclick="toggleCustomFoodRow()" class="text-[12px] font-medium" style="color: var(--ios-blue);">
+            + Quick Add
+          </button>
+        </div>
+
+        <!-- Custom Quick-Add Drawer -->
+        <div id="custom-food-drawer" class="hidden ios-card p-3 space-y-2.5">
+          <div class="text-[12px] font-semibold text-white">Add Extra Meal / Office Snack</div>
+          <input id="custom-food-title" type="text" placeholder="e.g. Max Protein Bar or 3 Boiled Eggs" class="w-full ios-well px-3 py-2 text-[14px] text-white placeholder-zinc-500 focus:outline-none" />
+          <div class="grid grid-cols-3 gap-2">
+            <input id="custom-food-kcal" type="number" placeholder="kcal" class="ios-well px-3 py-2 text-[14px] text-white tabular-nums placeholder-zinc-500 focus:outline-none" />
+            <input id="custom-food-prot" type="number" placeholder="Protein (g)" class="ios-well px-3 py-2 text-[14px] text-white tabular-nums placeholder-zinc-500 focus:outline-none" />
+            <button onclick="submitCustomFood()" class="rounded-[9px] font-semibold text-[14px] text-white active:opacity-80" style="background-color: var(--ios-blue);">
+              Add
+            </button>
+          </div>
+        </div>
+
+        <!-- Timed 5-Slot Meal Cards -->
+        <div id="timed-meals-container" class="ios-card divide-y divide-[rgba(255,255,255,0.12)] overflow-hidden"></div>
+
+        <!-- Extra Custom Items Logged Today -->
+        <div id="extra-meals-card" class="hidden ios-card p-3.5 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold uppercase tracking-wider" style="color: var(--ios-label-secondary);">Extra Logged Items</span>
+            <button onclick="clearExtraMeals()" class="text-[11px]" style="color: var(--ios-red);">Clear</button>
+          </div>
+          <div id="extra-meals-list" class="flex flex-wrap gap-1.5"></div>
+        </div>
+      </div>
+
+      <!-- SUBVIEW B: SMART TIMED HYDRATION SCHEDULER & HABITS -->
+      <div id="fuel-subview-water" class="hidden space-y-4">
+
+        <!-- Smart Hydration Alert Control Card -->
+        <section class="ios-card p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-[16px] font-semibold text-white">Timely Water Alerts</span>
+                <span id="water-pace-badge" class="text-[11px] font-semibold px-2 py-0.5 rounded-full" style="background-color: rgba(100, 210, 255, 0.16); color: var(--ios-teal);">On Pace</span>
+              </div>
+              <p class="text-[12px] mt-0.5" style="color: var(--ios-label-secondary);">
+                8 workday checkpoints (08:30 AM – 09:00 PM) to hit 3,500 ml
+              </p>
+            </div>
+            <button onclick="toggleWaterNotifications()" id="water-notif-toggle" class="w-12 h-7 rounded-full p-0.5 transition-colors duration-200 flex items-center" style="background-color: rgba(120, 120, 128, 0.32);">
+              <span id="water-notif-knob" class="w-6 h-6 rounded-full bg-white shadow transform translate-x-0 transition-transform duration-200"></span>
+            </button>
+          </div>
+
+          <!-- Next Scheduled Drink Callout -->
+          <div class="ios-well p-3 flex items-center justify-between gap-2">
+            <div>
+              <div class="text-[11px] font-semibold uppercase tracking-wider" style="color: var(--ios-teal);">Next Scheduled Intake</div>
+              <div id="next-water-slot-text" class="text-[14px] font-semibold text-white mt-0.5 tabular-nums">10:30 AM · 450 ml Office Desk</div>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button onclick="testWaterReminderAlert()" class="px-2.5 py-1.5 rounded-lg text-[12px] font-medium ios-card active:opacity-70" style="color: var(--ios-label-secondary);">
+                Test Alert
+              </button>
+              <button onclick="logNextScheduledWater()" id="log-next-water-btn" class="px-3 py-1.5 rounded-lg text-[12px] font-semibold text-black active:opacity-80" style="background-color: var(--ios-teal);">
+                + Log
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 8 Timed Hydration Slots List -->
+        <section class="space-y-2">
+          <div class="flex items-center justify-between px-1">
+            <span class="text-[12px] font-semibold uppercase tracking-wider" style="color: var(--ios-label-secondary);">
+              Daily Hydration Schedule (3,500 ml)
+            </span>
+            <span id="water-slots-counter" class="text-[12px] font-medium tabular-nums" style="color: var(--ios-teal);">0 / 3,500 ml</span>
+          </div>
+          <div id="water-schedule-list" class="ios-card divide-y divide-[rgba(255,255,255,0.12)] overflow-hidden"></div>
+        </section>
+
+        <!-- Daily Non-Negotiables & Steps -->
+        <section class="space-y-2 pb-4">
+          <div class="flex items-center justify-between px-1">
+            <span class="text-[12px] font-semibold uppercase tracking-wider" style="color: var(--ios-label-secondary);">
+              Daily Non-Negotiables & Steps
+            </span>
+            <span id="habit-score-label" class="text-[12px] font-medium tabular-nums" style="color: var(--ios-label-secondary);">0 of 5</span>
+          </div>
+
+          <div class="ios-card divide-y divide-[rgba(255,255,255,0.12)]">
+            <div class="px-4 py-3 flex items-center justify-between">
+              <div>
+                <div class="text-[15px] font-medium text-white">Daily Steps Outside Gym</div>
+                <div class="text-[12px] tabular-nums" style="color: var(--ios-label-secondary);">
+                  <span id="steps-val" class="text-white font-semibold">0</span> / 6,000 steps goal
+                </div>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button onclick="changeSteps(-1000)" class="w-8 h-8 rounded-lg ios-well text-[15px] font-semibold text-white active:opacity-70">−</button>
+                <button onclick="changeSteps(1000)" class="px-3 h-8 rounded-lg ios-well text-[12px] font-semibold active:opacity-70" style="color: var(--ios-blue);">+1,000</button>
+              </div>
+            </div>
+            <div id="reminders-list" class="divide-y divide-[rgba(255,255,255,0.12)]"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- =========================================================
+         TAB 3: COACH & MASTERY PROGRESS (AI Advisor & Body Weight)
+    ========================================================== -->
+    <main id="view-progress" class="hidden flex-1 px-4 pt-3.5 space-y-5">
+
+      <!-- AI Trainer & Mastery Advisor Card -->
+      <section class="ios-card p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full" style="background-color: var(--ios-purple);"></span>
+            <h2 class="text-[16px] font-semibold text-white">AI Performance & Mastery Coach</h2>
+          </div>
+          <span class="text-[11px] font-medium px-2 py-0.5 rounded-full ios-well" style="color: var(--ios-label-secondary);">Live Analysis</span>
+        </div>
+
+        <div id="ai-coach-response" class="ios-well p-3 text-[13px] leading-relaxed" style="color: rgba(235, 235, 245, 0.85);">
+          Tap a quick audit below or ask a question. I track your 3-Gate Exercise Mastery, tendon-safe load jumps, and office protein timing.
+        </div>
+
+        <div class="flex flex-wrap gap-1.5">
+          <button onclick="askAICoach('audit')" class="px-2.5 py-1.5 rounded-lg ios-well text-[12px] font-medium active:opacity-75" style="color: var(--ios-blue);">
+            Audit My Tier Mastery
+          </button>
+          <button onclick="askAICoach('office')" class="px-2.5 py-1.5 rounded-lg ios-well text-[12px] font-medium active:opacity-75" style="color: var(--ios-green);">
+            Office Protein Strategy
+          </button>
+          <button onclick="askAICoach('joints')" class="px-2.5 py-1.5 rounded-lg ios-well text-[12px] font-medium active:opacity-75" style="color: var(--ios-orange);">
+            Tendon Recovery Check
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2 pt-1">
+          <input id="ai-coach-input" type="text" placeholder="Ask about weights, form, or meals..." class="flex-1 ios-well px-3 py-2 text-[14px] text-white placeholder-zinc-500 focus:outline-none" />
+          <button onclick="askAICoach('custom')" id="ai-send-btn" class="px-3.5 py-2 rounded-[9px] font-semibold text-[13px] text-white active:opacity-80" style="background-color: var(--ios-blue);">
+            Ask
+          </button>
+        </div>
+      </section>
+
+      <!-- Mastery & Tier Progression Matrix -->
+      <section class="space-y-2">
+        <div class="flex items-center justify-between px-1">
+          <span class="text-[12px] font-semibold uppercase tracking-wider" style="color: var(--ios-label-secondary);">
+            Exercise Mastery & Tier Status
+          </span>
+          <span id="audit-day-indicator" class="text-[12px] font-medium" style="color: var(--ios-blue);">Day 1</span>
+        </div>
+        <div id="progression-audit-list" class="ios-card divide-y divide-[rgba(255,255,255,0.12)]"></div>
+      </section>
+
+      <!-- Body Weight Tracker -->
+      <section class="space-y-2">
+        <div class="flex items-center justify-between px-1">
+          <span class="text-[12px] font-semibold uppercase tracking-wider" style="color: var(--ios-label-secondary);">
+            Body Weight Trend (78 kg → 64.5 kg Blueprint)
+          </span>
+          <span id="weight-change-pill" class="text-[13px] font-semibold tabular-nums" style="color: var(--ios-green);">--</span>
+        </div>
+
+        <div class="ios-card p-4 space-y-3.5">
+          <div class="flex items-center gap-2">
+            <input id="weight-log-input" type="number" step="0.1" placeholder="Log morning weight (kg)" class="flex-1 ios-well px-3.5 py-2 text-[15px] text-white tabular-nums placeholder-zinc-500 focus:outline-none" />
+            <button onclick="addWeightEntry()" class="px-4 py-2 rounded-[9px] font-semibold text-[14px] text-white active:opacity-80" style="background-color: var(--ios-blue);">
+              Log
+            </button>
+          </div>
+
+          <div id="weight-sparkline-box" class="w-full h-28 ios-well p-3 flex items-center justify-center"></div>
+
+          <div id="weight-entries-list" class="divide-y divide-[rgba(255,255,255,0.12)] max-h-36 overflow-y-auto"></div>
+        </div>
+      </section>
+
+      <!-- Data Reset & Export -->
+      <section class="ios-card divide-y divide-[rgba(255,255,255,0.12)] mb-6">
+        <button onclick="copyBackupJSON()" class="w-full px-4 py-3 text-left text-[15px] font-medium flex items-center justify-between active:bg-white/5" style="color: var(--ios-blue);">
+          <span>Copy Backup Data (JSON)</span>
+          <span class="text-[13px]" style="color: var(--ios-label-secondary);">Clipboard</span>
+        </button>
+        <button onclick="resetToSafeDefaults()" id="reset-btn" class="w-full px-4 py-3 text-left text-[15px] font-medium flex items-center justify-between active:bg-white/5" style="color: var(--ios-red);">
+          <span>Reset All Weights to Foundation Defaults</span>
+          <span class="text-[13px]" style="color: var(--ios-label-secondary);">Wipe</span>
+        </button>
+      </section>
+    </main>
+
+    <!-- =========================================================
+         NATIVE iOS BOTTOM SHEET FOR EXERCISE SWAPS & TIER UPGRADES
+    ========================================================== -->
+    <div id="sheet-backdrop" onclick="closeSwapSheet()" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0"></div>
+    <div id="sheet-panel" class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-50 rounded-t-[22px] p-4 pb-8 translate-y-full border-t border-white/15 max-h-[82vh] overflow-y-auto" style="background-color: #1C1C1E;">
+      <div class="w-9 h-1 rounded-full bg-zinc-600 mx-auto mb-3"></div>
+      <div class="flex items-center justify-between mb-3 px-1">
+        <div>
+          <h3 id="sheet-slot-title" class="text-[17px] font-semibold text-white">Exercise & Mastery Tiers</h3>
+          <p id="sheet-slot-subtitle" class="text-[12px]" style="color: var(--ios-label-secondary);">Switch equipment or preview Advanced/Pro tiers</p>
+        </div>
+        <button onclick="closeSwapSheet()" class="w-7 h-7 rounded-full ios-well flex items-center justify-center text-[14px] font-bold" style="color: var(--ios-label-secondary);">✕</button>
+      </div>
+      <div id="sheet-options-list" class="space-y-2.5 mt-2"></div>
+    </div>
+
+    <!-- =========================================================
+         NATIVE iOS BOTTOM SHEET FOR EXERCISE SWAPS
+    ========================================================== -->
+    <div id="sheet-backdrop" onclick="closeSwapSheet()" class="fixed inset-0 bg-black/60 z-50 hidden opacity-0"></div>
+    <div id="sheet-panel" class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-50 rounded-t-[22px] p-4 pb-8 translate-y-full border-t border-white/15" style="background-color: #1C1C1E;">
+      <div class="w-9 h-1 rounded-full bg-zinc-600 mx-auto mb-3"></div>
+      <div class="flex items-center justify-between mb-3 px-1">
+        <div>
+          <h3 id="sheet-slot-title" class="text-[17px] font-semibold text-white">Swap Exercise</h3>
+          <p class="text-[13px]" style="color: var(--ios-label-secondary);">Choose a joint-friendly machine or dumbbell option</p>
+        </div>
+        <button onclick="closeSwapSheet()" class="w-7 h-7 rounded-full ios-well flex items-center justify-center text-[14px] font-bold" style="color: var(--ios-label-secondary);">✕</button>
+      </div>
+      <div id="sheet-options-list" class="space-y-2 mt-2"></div>
+    </div>
+
+    <!-- =========================================================
+         BOTTOM iOS TAB BAR
+    ========================================================== -->
+    <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] z-30 ios-blur-chrome ios-hairline-t px-6 pt-1.5 pb-5 flex items-center justify-around">
+      <button onclick="switchView('workouts')" id="tabbtn-workouts" class="flex flex-col items-center gap-0.5 py-1 px-4" style="color: var(--ios-blue);">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6.5 6.5h11M6.5 17.5h11M4 9v6m16-6v6M2 10.5v3m20-3v3M9 6.5v11m6-11v11" />
+        </svg>
+        <span class="text-[10px] font-medium">Workouts</span>
+      </button>
+
+      <button onclick="switchView('fuel')" id="tabbtn-fuel" class="flex flex-col items-center gap-0.5 py-1 px-4" style="color: var(--ios-label-secondary);">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+        </svg>
+        <span class="text-[10px] font-medium">Fuel</span>
+      </button>
+
+      <button onclick="switchView('progress')" id="tabbtn-progress" class="flex flex-col items-center gap-0.5 py-1 px-4" style="color: var(--ios-label-secondary);">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 17l6-6 4 4 8-8M14 7h7v7" />
+        </svg>
+        <span class="text-[10px] font-medium">Progress</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <textarea id="clipboard-area" class="fixed -top-96 opacity-0 pointer-events-none"></textarea>
+
+  <script>
+    /* =========================================================================
+       1. 3-TIER MASTERY & EQUIPMENT CATALOG
+          Tier 1: Foundation (Return-to-Gym Tendon-Safe Machines & Light DBs)
+          Tier 2: Intermediate Hypertrophy (Heavier DBs / Unilateral / Cable Overload)
+          Tier 3: Pro Athletic Mastery (High-Load Compound & Advanced Calisthenics)
+          Each option defines `startKg` and `masteryKg` so the app deterministically
+          knows when the user has mastered that movement.
+    ========================================================================= */
+    const WORKOUT_SPLITS = {
+      1: {
+        name: "Day 1 · Push & Core",
+        subtitle: "Hit Mastery Target Kg × Max Reps twice to unlock Next Tier",
+        slots: [
+          {
+            slotId: "d1_s1",
+            sets: 4, minReps: 8, maxReps: 10, repRangeText: "4 × 8–10 reps", stepKg: 1.25,
+            options: [
+              { id: "d1_s1_db", tier: 1, tierName: "Foundation", name: "Flat Dumbbell Chest Press", unitNote: "Per DB", startKg: 7.5, masteryKg: 15, bioNote: "Joint-friendly wrist & shoulder path; builds stabilizer control." },
+              { id: "d1_s1_mach", tier: 1, tierName: "Foundation", name: "Seated Machine Chest Press", unitNote: "Machine Stack", startKg: 15, masteryKg: 35, bioNote: "Guided pressing path—zero balance risk on return to gym." },
+              { id: "d1_s1_t2", tier: 2, tierName: "Intermediate", name: "Heavy DB Press (Paused Stretch)", unitNote: "Per DB", startKg: 15, masteryKg: 25, bioNote: "1-second pause at bottom stretch for chest hypertrophy." },
+              { id: "d1_s1_t3", tier: 3, tierName: "Pro", name: "Barbell Bench Press", unitNote: "Total Bar Load", startKg: 45, masteryKg: 75, bioNote: "Full compound strength benchmark from original program." }
+            ]
+          },
+          {
+            slotId: "d1_s2",
+            sets: 3, minReps: 8, maxReps: 10, repRangeText: "3 × 8–10 reps", stepKg: 1.25,
+            options: [
+              { id: "d1_s2_db", tier: 1, tierName: "Foundation", name: "Incline Dumbbell Press (30°)", unitNote: "Per DB", startKg: 5, masteryKg: 12.5, bioNote: "30° bench angle targets upper chest without shoulder impingement." },
+              { id: "d1_s2_mach", tier: 1, tierName: "Foundation", name: "Incline Machine Press", unitNote: "Machine Stack", startKg: 12.5, masteryKg: 30, bioNote: "Guided upper-chest pressing with zero rotator cuff strain." },
+              { id: "d1_s2_t2", tier: 2, tierName: "Intermediate", name: "Incline DB Press (Tempo 3-1-1)", unitNote: "Per DB", startKg: 12.5, masteryKg: 22.5, bioNote: "3-second lowering phase maximizes clavicular pec tension." },
+              { id: "d1_s2_t3", tier: 3, tierName: "Pro", name: "Low-to-High Cable Fly + Heavy DB", unitNote: "Per Side", startKg: 15, masteryKg: 25, bioNote: "Peak contraction upper-pec overload." }
+            ]
+          },
+          {
+            slotId: "d1_s3",
+            sets: 3, minReps: 8, maxReps: 10, repRangeText: "3 × 8–10 reps", stepKg: 1.25,
+            options: [
+              { id: "d1_s3_db", tier: 1, tierName: "Foundation", name: "Seated DB Shoulder Press", unitNote: "Per DB", startKg: 5, masteryKg: 12.5, bioNote: "Use 45° scapular plane grip to keep shoulder joints safe." },
+              { id: "d1_s3_mach", tier: 1, tierName: "Foundation", name: "Machine Shoulder Press", unitNote: "Machine Stack", startKg: 10, masteryKg: 27.5, bioNote: "Back-supported overhead pressing with controlled stability." },
+              { id: "d1_s3_t2", tier: 2, tierName: "Intermediate", name: "Seated Arnold / Full ROM DB Press", unitNote: "Per DB", startKg: 12.5, masteryKg: 20, bioNote: "Full anterior & medial deltoid recruitment." },
+              { id: "d1_s3_t3", tier: 3, tierName: "Pro", name: "Standing Overhead Barbell Press", unitNote: "Total Load", startKg: 30, masteryKg: 50, bioNote: "Strict athletic overhead power." }
+            ]
+          },
+          {
+            slotId: "d1_s4",
+            sets: 4, minReps: 12, maxReps: 15, repRangeText: "4 × 12–15 reps", stepKg: 1.25,
+            options: [
+              { id: "d1_s4_db", tier: 1, tierName: "Foundation", name: "Dumbbell Lateral Raises", unitNote: "Per DB", startKg: 2.5, masteryKg: 7.5, bioNote: "Light 2.5 kg prevents upper-trap takeover and elbow strain." },
+              { id: "d1_s4_mach", tier: 1, tierName: "Foundation", name: "Lateral Raise Machine", unitNote: "Machine Stack", startKg: 7.5, masteryKg: 20, bioNote: "Padded elbows isolate medial deltoids cleanly." },
+              { id: "d1_s4_t2", tier: 2, tierName: "Intermediate", name: "Behind-Back Cable Lateral Raise", unitNote: "Cable Stack", startKg: 5, masteryKg: 12.5, bioNote: "Loads the side delt in its fully stretched bottom position." },
+              { id: "d1_s4_t3", tier: 3, tierName: "Pro", name: "Cuff Cable Lateral Raise (Pause Top)", unitNote: "Cable Stack", startKg: 10, masteryKg: 17.5, bioNote: "Zero grip fatigue; pure lateral deltoid isolation." }
+            ]
+          },
+          {
+            slotId: "d1_s5",
+            sets: 3, minReps: 8, maxReps: 12, repRangeText: "3 × 8–12 reps", stepKg: 2.5,
+            options: [
+              { id: "d1_s5_mach", tier: 1, tierName: "Foundation", name: "Seated Dip Machine", unitNote: "Machine Stack", startKg: 15, masteryKg: 35, bioNote: "Safer on anterior shoulder capsule than unweighted bodyweight dips." },
+              { id: "d1_s5_assist", tier: 1, tierName: "Foundation", name: "Assisted Dip Machine", unitNote: "Counterweight", startKg: 20, masteryKg: 35, bioNote: "Controlled dip mechanics with reduced joint load." },
+              { id: "d1_s5_t2", tier: 2, tierName: "Intermediate", name: "Parallel Bar Bodyweight Dips", unitNote: "Bodyweight + Kg", startKg: 0, masteryKg: 10, bioNote: "Full bodyweight chest & tricep compound dip." },
+              { id: "d1_s5_t3", tier: 3, tierName: "Pro", name: "Weighted Dip Belt Dips", unitNote: "Added Belt Kg", startKg: 10, masteryKg: 25, bioNote: "Elite upper-body pushing strength." }
+            ]
+          },
+          {
+            slotId: "d1_s6",
+            sets: 3, minReps: 10, maxReps: 12, repRangeText: "3 × 12 reps", stepKg: 1.25,
+            options: [
+              { id: "d1_s6_rope", tier: 1, tierName: "Foundation", name: "Cable Rope Pushdowns", unitNote: "Cable Stack", startKg: 7.5, masteryKg: 17.5, bioNote: "Keep elbows pinned to sides; warms up elbow tendons safely." },
+              { id: "d1_s6_bar", tier: 1, tierName: "Foundation", name: "EZ-Bar Cable Pushdowns", unitNote: "Cable Stack", startKg: 10, masteryKg: 22.5, bioNote: "Angled bar is gentle on wrists." },
+              { id: "d1_s6_t2", tier: 2, tierName: "Intermediate", name: "Overhead Cable Tricep Extension", unitNote: "Cable Stack", startKg: 12.5, masteryKg: 25, bioNote: "Stretches the long head of the triceps for full arm growth." },
+              { id: "d1_s6_t3", tier: 3, tierName: "Pro", name: "Single-Arm Cross-Body Cable Extension", unitNote: "Per Side", startKg: 10, masteryKg: 20, bioNote: "Aligns cable directly with tricep fibers." }
+            ]
+          },
+          {
+            slotId: "d1_s7",
+            sets: 3, minReps: 30, maxReps: 40, repRangeText: "3 × 30–40s", stepKg: 2.5,
+            options: [
+              { id: "d1_s7_plank", tier: 1, tierName: "Foundation", name: "Core: Forearm Plank", unitNote: "Added Kg", startKg: 0, masteryKg: 5, bioNote: "Brace ribs down and squeeze glutes for 40 seconds." },
+              { id: "d1_s7_crunch", tier: 2, tierName: "Intermediate", name: "Kneeling Cable Rope Crunch", unitNote: "Cable Stack", startKg: 15, masteryKg: 35, bioNote: "Progressive weighted spinal flexion for visible abs." },
+              { id: "d1_s7_wheel", tier: 3, tierName: "Pro", name: "Ab Wheel Rollouts", unitNote: "Added Kg", startKg: 0, masteryKg: 10, bioNote: "Advanced anti-extension core mastery." }
+            ]
+          }
+        ]
+      },
+      2: {
+        name: "Day 2 · Pull & Core",
+        subtitle: "Chest-supported rows & cables · Zero lower-back strain",
+        slots: [
+          {
+            slotId: "d2_s1",
+            sets: 4, minReps: 6, maxReps: 8, repRangeText: "4 × 8 reps (2 RIR)", stepKg: 2.5,
+            options: [
+              { id: "d2_s1_assist", tier: 1, tierName: "Foundation", name: "Assisted Pull-Up Machine", unitNote: "Stack Load", startKg: 20, masteryKg: 40, bioNote: "Builds vertical pulling tendon strength safely." },
+              { id: "d2_s1_lat", tier: 1, tierName: "Foundation", name: "Wide-Grip Lat Pulldown", unitNote: "Machine Stack", startKg: 20, masteryKg: 42.5, bioNote: "Pull bar to upper chest while driving elbows down." },
+              { id: "d2_s1_t2", tier: 2, tierName: "Intermediate", name: "Strict Bodyweight Pull-Ups", unitNote: "Added Kg", startKg: 0, masteryKg: 10, bioNote: "Full dead-hang to chin-over-bar pull-ups (1 rep shy of failure)." },
+              { id: "d2_s1_t3", tier: 3, tierName: "Pro", name: "Weighted Belt Pull-Ups", unitNote: "Added Belt Kg", startKg: 10, masteryKg: 25, bioNote: "Elite V-taper back development." }
+            ]
+          },
+          {
+            slotId: "d2_s2",
+            sets: 3, minReps: 10, maxReps: 12, repRangeText: "3 × 10–12 reps", stepKg: 2.5,
+            options: [
+              { id: "d2_s2_neutral", tier: 1, tierName: "Foundation", name: "Neutral-Grip Lat Pulldown", unitNote: "Machine Stack", startKg: 20, masteryKg: 42.5, bioNote: "Palms-facing grip puts shoulders in their safest line." },
+              { id: "d2_s2_t2", tier: 2, tierName: "Intermediate", name: "MAG-Grip Close Lat Pulldown", unitNote: "Machine Stack", startKg: 40, masteryKg: 60, bioNote: "Deep lower-lat stretch and contraction." },
+              { id: "d2_s2_t3", tier: 3, tierName: "Pro", name: "Single-Arm Kneeling Cable Pulldown", unitNote: "Per Side", startKg: 22.5, masteryKg: 37.5, bioNote: "Unilateral lat isolation through full thoracic arc." }
+            ]
+          },
+          {
+            slotId: "d2_s3",
+            sets: 3, minReps: 8, maxReps: 10, repRangeText: "3 × 8–10 reps", stepKg: 2.5,
+            options: [
+              { id: "d2_s3_chest", tier: 1, tierName: "Foundation", name: "Chest-Supported Machine Row", unitNote: "Machine Stack", startKg: 15, masteryKg: 37.5, bioNote: "Chest pad removes lower-back shear stress completely." },
+              { id: "d2_s3_cable", tier: 1, tierName: "Foundation", name: "Seated Cable Row (V-Bar)", unitNote: "Cable Stack", startKg: 20, masteryKg: 42.5, bioNote: "Keep torso upright; squeeze shoulder blades together." },
+              { id: "d2_s3_t2", tier: 2, tierName: "Intermediate", name: "Chest-Supported T-Bar Row", unitNote: "Plate Load", startKg: 25, masteryKg: 50, bioNote: "Heavy mid-back thickness without spinal fatigue." },
+              { id: "d2_s3_t3", tier: 3, tierName: "Pro", name: "Pendlay / Barbell Bent-Over Row", unitNote: "Total Bar Load", startKg: 45, masteryKg: 75, bioNote: "Original program barbell row for full posterior chain density." }
+            ]
+          },
+          {
+            slotId: "d2_s4",
+            sets: 3, minReps: 10, maxReps: 12, repRangeText: "3 × 10–12 reps", stepKg: 1.25,
+            options: [
+              { id: "d2_s4_db", tier: 1, tierName: "Foundation", name: "Single-Arm Dumbbell Row", unitNote: "Per DB", startKg: 7.5, masteryKg: 17.5, bioNote: "Support hand & knee on bench; pull dumbbell toward hip." },
+              { id: "d2_s4_t2", tier: 2, tierName: "Intermediate", name: "Heavy Tripod DB Row (Strap)", unitNote: "Per DB", startKg: 17.5, masteryKg: 30, bioNote: "Arc the dumbbell back toward the hip crease." },
+              { id: "d2_s4_t3", tier: 3, tierName: "Pro", name: "Meadows Row / Kroc Row", unitNote: "Loaded End", startKg: 25, masteryKg: 42.5, bioNote: "High-intensity upper-back and lat overload." }
+            ]
+          },
+          {
+            slotId: "d2_s5",
+            sets: 3, minReps: 12, maxReps: 15, repRangeText: "3 × 15 reps", stepKg: 1.25,
+            options: [
+              { id: "d2_s5_face", tier: 1, tierName: "Foundation", name: "Cable Rope Face Pulls", unitNote: "Cable Stack", startKg: 7.5, masteryKg: 17.5, bioNote: "Essential posture & rotator cuff builder." },
+              { id: "d2_s5_pec", tier: 2, tierName: "Intermediate", name: "Reverse Pec Deck (Rear Delt)", unitNote: "Machine Stack", startKg: 15, masteryKg: 32.5, bioNote: "Chest-supported rear delt isolation." },
+              { id: "d2_s5_t3", tier: 3, tierName: "Pro", name: "Chest-Supported Incline Rear Delt Fly", unitNote: "Per DB", startKg: 7.5, masteryKg: 15, bioNote: "Strict rear-delt & rhomboid control." }
+            ]
+          },
+          {
+            slotId: "d2_s6",
+            sets: 3, minReps: 10, maxReps: 12, repRangeText: "3 × 10–12 reps", stepKg: 1.25,
+            options: [
+              { id: "d2_s6_hammer", tier: 1, tierName: "Foundation", name: "Dumbbell Hammer Curls", unitNote: "Per DB", startKg: 5, masteryKg: 12.5, bioNote: "Neutral grip protects bicep tendons and forearms." },
+              { id: "d2_s6_preach", tier: 1, tierName: "Foundation", name: "Preacher Curl Machine", unitNote: "Machine Stack", startKg: 10, masteryKg: 25, bioNote: "Stop 10° shy of full bottom lockout for tendon safety." },
+              { id: "d2_s6_t2", tier: 2, tierName: "Intermediate", name: "Incline Bench DB Bicep Curl", unitNote: "Per DB", startKg: 7.5, masteryKg: 15, bioNote: "Long-head bicep stretch with zero momentum." },
+              { id: "d2_s6_t3", tier: 3, tierName: "Pro", name: "Bayesian Behind-Back Cable Curl", unitNote: "Per Side", startKg: 10, masteryKg: 20, bioNote: "Peak continuous tension across the entire curl arc." }
+            ]
+          },
+          {
+            slotId: "d2_s7",
+            sets: 3, minReps: 10, maxReps: 12, repRangeText: "3 × 12 reps", stepKg: 1.25,
+            options: [
+              { id: "d2_s7_capt", tier: 1, tierName: "Foundation", name: "Captain's Chair Knee Raises", unitNote: "Added Kg", startKg: 0, masteryKg: 5, bioNote: "Forearms supported on pads; curl pelvis up smoothly." },
+              { id: "d2_s7_t2", tier: 2, tierName: "Intermediate", name: "Hanging Bent-Knee Leg Raises", unitNote: "Added Kg", startKg: 0, masteryKg: 5, bioNote: "Builds grip endurance and lower abdominal compression." },
+              { id: "d2_s7_t3", tier: 3, tierName: "Pro", name: "Strict Hanging Straight-Leg Raises", unitNote: "Ankle Kg", startKg: 0, masteryKg: 5, bioNote: "Full calisthenic core mastery." }
+            ]
+          }
+        ]
+      },
+      3: {
+        name: "Day 3 · Legs & Core",
+        subtitle: "Controlled machine & light DB loads · Protect knees & spine",
+        slots: [
+          {
+            slotId: "d3_s1",
+            sets: 3, minReps: 8, maxReps: 10, repRangeText: "3 × 8–10 reps", stepKg: 2.5,
+            options: [
+              { id: "d3_s1_dbrdl", tier: 1, tierName: "Foundation", name: "Dumbbell Romanian Deadlift", unitNote: "Per DB", startKg: 7.5, masteryKg: 20, bioNote: "Push hips back with soft knees; teaches hip-hinge safely." },
+              { id: "d3_s1_legpress", tier: 1, tierName: "Foundation", name: "45° Leg Press Machine", unitNote: "Total Sled Load", startKg: 35, masteryKg: 90, bioNote: "Back-supported compound quad & glute builder." },
+              { id: "d3_s1_t2", tier: 2, tierName: "Intermediate", name: "Heavy DB / Trap-Bar RDL", unitNote: "Total Load", startKg: 45, masteryKg: 80, bioNote: "High hamstring & glute stimulus with neutral spine." },
+              { id: "d3_s1_t3", tier: 3, tierName: "Pro", name: "Barbell Romanian Deadlift (RDL)", unitNote: "Total Bar Load", startKg: 60, masteryKg: 100, bioNote: "Full posterior chain mastery from original routine." }
+            ]
+          },
+          {
+            slotId: "d3_s2",
+            sets: 3, minReps: 10, maxReps: 12, repRangeText: "3 × 12 reps", stepKg: 2.5,
+            options: [
+              { id: "d3_s2_seat", tier: 1, tierName: "Foundation", name: "Seated Leg Curl Machine", unitNote: "Machine Stack", startKg: 15, masteryKg: 37.5, bioNote: "Pause 1 second at bottom contraction; protects knee joint." },
+              { id: "d3_s2_t2", tier: 2, tierName: "Intermediate", name: "Seated Leg Curl (Slow 3s Eccentric)", unitNote: "Machine Stack", startKg: 35, masteryKg: 55, bioNote: "Controlled lengthening builds bulletproof hamstrings." },
+              { id: "d3_s2_t3", tier: 3, tierName: "Pro", name: "Single-Leg Seated Hamstring Curl", unitNote: "Per Leg", startKg: 20, masteryKg: 35, bioNote: "Eliminates left-to-right hamstring imbalances." }
+            ]
+          },
+          {
+            slotId: "d3_s3",
+            sets: 3, minReps: 10, maxReps: 12, repRangeText: "3 × 12 reps", stepKg: 2.5,
+            options: [
+              { id: "d3_s3_ext", tier: 1, tierName: "Foundation", name: "Leg Extension Machine", unitNote: "Machine Stack", startKg: 15, masteryKg: 37.5, bioNote: "Smooth 2-second squeeze at top; strengthens patellar tendon." },
+              { id: "d3_s3_t2", tier: 2, tierName: "Intermediate", name: "Leg Extension (2s Isometric Hold)", unitNote: "Machine Stack", startKg: 35, masteryKg: 60, bioNote: "Full rectus femoris quad sweep overload." },
+              { id: "d3_s3_t3", tier: 3, tierName: "Pro", name: "Single-Leg Quad Extension", unitNote: "Per Leg", startKg: 20, masteryKg: 37.5, bioNote: "Pro-level unilateral quad control." }
+            ]
+          },
+          {
+            slotId: "d3_s4",
+            sets: 4, minReps: 12, maxReps: 15, repRangeText: "4 × 15 reps", stepKg: 2.5,
+            options: [
+              { id: "d3_s4_calf", tier: 1, tierName: "Foundation", name: "Standing / Seated Calf Machine", unitNote: "Machine Stack", startKg: 15, masteryKg: 40, bioNote: "Full stretch at bottom, 1-second pause at top." },
+              { id: "d3_s4_t2", tier: 2, tierName: "Intermediate", name: "Heavy Standing Calf Raise (Pause)", unitNote: "Machine Stack", startKg: 40, masteryKg: 70, bioNote: "2-second bottom pause removes Achilles bounce." },
+              { id: "d3_s4_t3", tier: 3, tierName: "Pro", name: "Single-Leg Weighted Calf Raise", unitNote: "Per Leg DB", startKg: 12.5, masteryKg: 25, bioNote: "Maximum gastrocnemius & soleus recruitment." }
+            ]
+          },
+          {
+            slotId: "d3_s5",
+            sets: 3, minReps: 10, maxReps: 12, repRangeText: "3 × 12 reps", stepKg: 1.25,
+            options: [
+              { id: "d3_s5_chop", tier: 1, tierName: "Foundation", name: "Cable Woodchoppers", unitNote: "Cable Stack", startKg: 5, masteryKg: 12.5, bioNote: "Controlled rotational core work with light 5 kg stack." },
+              { id: "d3_s5_pallof", tier: 2, tierName: "Intermediate", name: "Heavy Cable Woodchoppers", unitNote: "Cable Stack", startKg: 12.5, masteryKg: 22.5, bioNote: "Athletic oblique power and spine stability." },
+              { id: "d3_s5_t3", tier: 3, tierName: "Pro", name: "Rotational Landmine / Cable Press", unitNote: "Loaded Stack", startKg: 20, masteryKg: 32.5, bioNote: "Pro rotational core transfer." }
+            ]
+          }
+        ]
+      },
+      4: {
+        name: "Day 4 · Conditioning & Stability",
+        subtitle: "Scaled athletic movements · Focus on balance & control",
+        slots: [
+          {
+            slotId: "d4_s1",
+            sets: 4, minReps: 5, maxReps: 8, repRangeText: "4 × 5–8 reps", stepKg: 2.5,
+            options: [
+              { id: "d4_s1_lat", tier: 1, tierName: "Foundation", name: "Controlled Power Lat Pulldown", unitNote: "Machine Stack", startKg: 20, masteryKg: 42.5, bioNote: "Pull smoothly and powerfully to chest, 3-second return." },
+              { id: "d4_s1_t2", tier: 2, tierName: "Intermediate", name: "Band-Assisted Explosive Pull-Ups", unitNote: "Added Kg", startKg: 0, masteryKg: 7.5, bioNote: "Accelerate chest to bar with crisp control." },
+              { id: "d4_s1_t3", tier: 3, tierName: "Pro", name: "Explosive Chest-to-Bar Pull-Ups", unitNote: "Added Kg", startKg: 0, masteryKg: 10, bioNote: "Original Day 4 calisthenics power movement." }
+            ]
+          },
+          {
+            slotId: "d4_s2",
+            sets: 3, minReps: 6, maxReps: 8, repRangeText: "3 × 6–8 reps", stepKg: 2.5,
+            options: [
+              { id: "d4_s2_dip", tier: 1, tierName: "Foundation", name: "Seated Machine Dip", unitNote: "Machine Stack", startKg: 15, masteryKg: 37.5, bioNote: "Builds pressing lockout strength safely before weighted dips." },
+              { id: "d4_s2_t2", tier: 2, tierName: "Intermediate", name: "Strict Parallel Bar Dips", unitNote: "Added Kg", startKg: 0, masteryKg: 10, bioNote: "Full depth bodyweight control." },
+              { id: "d4_s2_t3", tier: 3, tierName: "Pro", name: "Weighted Dips (3 × 6–8)", unitNote: "Belt Kg", startKg: 10, masteryKg: 25, bioNote: "Original Day 4 heavy upper-body power dip." }
+            ]
+          },
+          {
+            slotId: "d4_s3",
+            sets: 3, minReps: 12, maxReps: 15, repRangeText: "3 × 15 reps", stepKg: 2.5,
+            options: [
+              { id: "d4_s3_push", tier: 1, tierName: "Foundation", name: "Incline or Floor Push-Ups", unitNote: "Added Kg", startKg: 0, masteryKg: 5, bioNote: "Hands elevated on bench if needed to keep 15 crisp reps." },
+              { id: "d4_s3_t2", tier: 2, tierName: "Intermediate", name: "Deficit Push-Ups on Dumbbells", unitNote: "Added Kg", startKg: 0, masteryKg: 7.5, bioNote: "Deeper chest stretch and serratus activation." },
+              { id: "d4_s3_t3", tier: 3, tierName: "Pro", name: "Weighted Plate / Band Push-Ups", unitNote: "Back Plate Kg", startKg: 5, masteryKg: 15, bioNote: "Explosive pushing endurance." }
+            ]
+          },
+          {
+            slotId: "d4_s4",
+            sets: 3, minReps: 8, maxReps: 10, repRangeText: "3 × 8 each leg", stepKg: 1.25,
+            options: [
+              { id: "d4_s4_split", tier: 1, tierName: "Foundation", name: "Supported Split Squat", unitNote: "Per DB", startKg: 0, masteryKg: 7.5, bioNote: "Hold rack post for balance; master knee tracking first." },
+              { id: "d4_s4_t2", tier: 2, tierName: "Intermediate", name: "Dumbbell Bulgarian Split Squat", unitNote: "Per DB", startKg: 7.5, masteryKg: 17.5, bioNote: "Rear foot elevated on bench; deep glute & quad builder." },
+              { id: "d4_s4_t3", tier: 3, tierName: "Pro", name: "Heavy Bulgarian Split Squat", unitNote: "Per DB", startKg: 17.5, masteryKg: 27.5, bioNote: "Elite unilateral leg strength & balance." }
+            ]
+          },
+          {
+            slotId: "d4_s5",
+            sets: 3, minReps: 30, maxReps: 40, repRangeText: "3 × 30–40m walk", stepKg: 2.5,
+            options: [
+              { id: "d4_s5_carry", tier: 1, tierName: "Foundation", name: "Dumbbell Farmer's Carry", unitNote: "Per DB", startKg: 10, masteryKg: 20, bioNote: "Walk tall with 10 kg dumbbells; builds grip and core posture." },
+              { id: "d4_s5_t2", tier: 2, tierName: "Intermediate", name: "Heavy DB Farmer's Carry", unitNote: "Per DB", startKg: 20, masteryKg: 30, bioNote: "Full-body conditioning and trap stability." },
+              { id: "d4_s5_t3", tier: 3, tierName: "Pro", name: "Suitcase Single-Arm Carry", unitNote: "Single DB", startKg: 22.5, masteryKg: 35, bioNote: "Intense anti-lateral flexion oblique conditioning." }
+            ]
+          },
+          {
+            slotId: "d4_s6",
+            sets: 3, minReps: 25, maxReps: 30, repRangeText: "3 × 30s hold", stepKg: 2.5,
+            options: [
+              { id: "d4_s6_deadbug", tier: 1, tierName: "Foundation", name: "Core: Tucked Hollow Body Hold", unitNote: "Added Kg", startKg: 0, masteryKg: 5, bioNote: "Keep lower back pressed flat into mat for 30s." },
+              { id: "d4_s6_t2", tier: 2, tierName: "Intermediate", name: "Extended Hollow Body Hold", unitNote: "Added Kg", startKg: 0, masteryKg: 5, bioNote: "Gymnastic anterior core lock." },
+              { id: "d4_s6_t3", tier: 3, tierName: "Pro", name: "Weighted Hollow Hold / Dragon Flag", unitNote: "Added Kg", startKg: 2.5, masteryKg: 10, bioNote: "Pro calisthenic core control." }
+            ]
+          }
+        ]
+      }
+    };
+
+    /* =========================================================================
+       2. 7-DAY TIMED OFFICE-FRIENDLY MEAL SCHEDULE (Mon - Sun)
+          Every day includes 5 timed slots with 1-tap swap options (Non-Veg,
+          Protein Bars for desk convenience, and Vegetarian staples).
+    ========================================================================= */
+    const WEEKLY_MEAL_PLAN = {
+      Mon: {
+        label: "Monday · Office Day",
+        isOffice: true,
+        slots: [
+          {
+            slotId: "m1", time: "08:30 AM", label: "Pre-Office Breakfast",
+            options: [
+              { name: "Oats + 3 Whole Eggs & 2 Whites", sub: "Quick pan scramble + 40g rolled oats", kcal: 390, prot: 27 },
+              { name: "Oats + Amul High Protein Buttermilk", sub: "Zero-cook overnight oats + 1 pack buttermilk", kcal: 340, prot: 19 }
+            ]
+          },
+          {
+            slotId: "m2", time: "11:30 AM", label: "Office Desk Snack",
+            options: [
+              { name: "20g Protein Bar + Black Coffee", sub: "The Whole Truth / Max Protein / YogaBar at desk", kcal: 230, prot: 20 },
+              { name: "Amul Protein Buttermilk + 30g Roasted Chana", sub: "Easy desk tetra pack + crunchy chana", kcal: 210, prot: 18 }
+            ]
+          },
+          {
+            slotId: "m3", time: "01:30 PM", label: "Office Tiffin Lunch",
+            options: [
+              { name: "150g Chicken Breast + 2 Rotis + Curd", sub: "Home-packed stir-fry chicken, cucumber salad & dahi", kcal: 510, prot: 42 },
+              { name: "120g Low-Fat Paneer Bhurji + 2 Rotis + Dal", sub: "Home tiffin paneer, dal & 100g curd", kcal: 520, prot: 28 }
+            ]
+          },
+          {
+            slotId: "m4", time: "05:15 PM", label: "Pre-Gym / Office Wrap-Up",
+            options: [
+              { name: "1 Scoop Whey Shake + 5g Creatine", sub: "Shaker bottle at office before leaving for gym", kcal: 130, prot: 25 },
+              { name: "15g Mini Protein Bar + 1 Banana", sub: "Quick energy 45 mins before lifting", kcal: 220, prot: 15 }
+            ]
+          },
+          {
+            slotId: "m5", time: "08:45 PM", label: "Post-Workout Dinner",
+            options: [
+              { name: "4 Egg Curry / Omelette + Dal + 1 Roti", sub: "Light recovery dinner + 2nd Amul Buttermilk", kcal: 420, prot: 31 },
+              { name: "Air-Fried Soya Chunks (50g) + Dal & Rice", sub: "High-protein soya + spiced buttermilk", kcal: 410, prot: 29 }
+            ]
+          }
+        ]
+      },
+      Tue: {
+        label: "Tuesday · Office Day",
+        isOffice: true,
+        slots: [
+          {
+            slotId: "m1", time: "08:30 AM", label: "Pre-Office Breakfast",
+            options: [
+              { name: "3 Egg Bhurji + 2 Multigrain Toast", sub: "Fast 5-min skillet breakfast before commute", kcal: 370, prot: 24 },
+              { name: "Moong Dal Chilla (2) + Low-Fat Curd", sub: "Savory high-protein Indian breakfast", kcal: 350, prot: 18 }
+            ]
+          },
+          {
+            slotId: "m2", time: "11:30 AM", label: "Office Desk Snack",
+            options: [
+              { name: "20g Protein Bar (No Added Sugar)", sub: "Keep in laptop bag for mid-morning meetings", kcal: 225, prot: 20 },
+              { name: "2 Boiled Eggs + Green Tea", sub: "Pre-boiled or office cafeteria eggs", kcal: 155, prot: 13 }
+            ]
+          },
+          {
+            slotId: "m3", time: "01:30 PM", label: "Office Tiffin Lunch",
+            options: [
+              { name: "Chicken Tikka / Tandoori (150g) + Dal + Rice", sub: "Air-fried chicken cubes + home dal & rice", kcal: 530, prot: 40 },
+              { name: "Rajma / Chole + 100g Low-Fat Paneer + Salad", sub: "Balanced complex carbs + complete protein", kcal: 510, prot: 26 }
+            ]
+          },
+          {
+            slotId: "m4", time: "05:15 PM", label: "Pre-Gym / Office Fuel",
+            options: [
+              { name: "1 Scoop Whey Isolate + Creatine (5g)", sub: "Zero-bloat pre/post workout protein", kcal: 125, prot: 26 },
+              { name: "20g Protein Bar + Black Coffee", sub: "Zero prep needed on busy office evenings", kcal: 230, prot: 20 }
+            ]
+          },
+          {
+            slotId: "m5", time: "08:45 PM", label: "Post-Workout Dinner",
+            options: [
+              { name: "150g Grilled Fish / Chicken + Sautéed Veggies", sub: "Lean dinner + Amul Protein Buttermilk", kcal: 390, prot: 38 },
+              { name: "120g Tofu / Paneer Tikka + Dal Soup", sub: "Light low-carb evening recovery meal", kcal: 400, prot: 27 }
+            ]
+          }
+        ]
+      },
+      Wed: {
+        label: "Wednesday · Office Active Recovery",
+        isOffice: true,
+        slots: [
+          {
+            slotId: "m1", time: "08:30 AM", label: "Pre-Office Breakfast",
+            options: [
+              { name: "High-Protein Whey Oatmeal + Almonds", sub: "Oats cooked with milk/water + 1 scoop whey", kcal: 380, prot: 29 },
+              { name: "Poha + 3 Boiled Eggs + Amul Buttermilk", sub: "Classic Indian breakfast boosted with protein", kcal: 410, prot: 26 }
+            ]
+          },
+          {
+            slotId: "m2", time: "11:30 AM", label: "Office Desk Snack",
+            options: [
+              { name: "Amul High Protein Buttermilk + Protein Bar (Half)", sub: "Light 11:30 AM desk combo", kcal: 200, prot: 22 },
+              { name: "Greek Yogurt / Epigamia Pro + Berries", sub: "High-protein probiotic desk snack", kcal: 160, prot: 15 }
+            ]
+          },
+          {
+            slotId: "m3", time: "01:30 PM", label: "Office Tiffin Lunch",
+            options: [
+              { name: "Egg Masala (3 Eggs) + 2 Rotis + Cucumber Salad", sub: "Easy tiffin staple that stays fresh", kcal: 490, prot: 26 },
+              { name: "150g Lemon Herb Chicken + 1 Cup Rice + Dal", sub: "High satiety mid-week lunch", kcal: 520, prot: 41 }
+            ]
+          },
+          {
+            slotId: "m4", time: "05:00 PM", label: "Office Evening Snack",
+            options: [
+              { name: "20g Protein Bar + 5g Creatine in Water", sub: "Rest day muscle maintenance at work", kcal: 230, prot: 20 },
+              { name: "Roasted Makhana / Chana + Whey Shake", sub: "Crunchy snack + clean shake", kcal: 240, prot: 26 }
+            ]
+          },
+          {
+            slotId: "m5", time: "08:30 PM", label: "Rest Day Dinner",
+            options: [
+              { name: "Home Dal Tadka + 150g Chicken / 4 Egg Whites + Roti", sub: "Comfort home dinner within deficit", kcal: 440, prot: 35 },
+              { name: "Soya Keema Matar + 1 Roti + Buttermilk", sub: "High-fiber vegetarian dinner", kcal: 420, prot: 28 }
+            ]
+          }
+        ]
+      },
+      Thu: {
+        label: "Thursday · Office Day",
+        isOffice: true,
+        slots: [
+          {
+            slotId: "m1", time: "08:30 AM", label: "Pre-Office Breakfast",
+            options: [
+              { name: "4 Egg Omelette (2 Whole + 2 Whites) + Toast", sub: "Lean high-protein morning start", kcal: 340, prot: 26 },
+              { name: "Besan Chilla (2) + 100g Low-Fat Paneer Stuffing", sub: "Packed with slow-digesting protein", kcal: 390, prot: 24 }
+            ]
+          },
+          {
+            slotId: "m2", time: "11:30 AM", label: "Office Desk Snack",
+            options: [
+              { name: "20g Protein Bar (Cacao / Peanut Butter)", sub: "Kills office sweet cravings cleanly", kcal: 235, prot: 20 },
+              { name: "Amul Protein Lassi / Buttermilk + Handful Almonds", sub: "Quick sip between calls", kcal: 210, prot: 18 }
+            ]
+          },
+          {
+            slotId: "m3", time: "01:30 PM", label: "Office Tiffin Lunch",
+            options: [
+              { name: "150g Chicken Curry (Home Light Oil) + 2 Rotis", sub: "Traditional home taste with measured oil", kcal: 530, prot: 40 },
+              { name: "Palak Paneer (Low-Fat 120g) + 2 Rotis + Curd", sub: "Iron & protein rich office lunch", kcal: 500, prot: 27 }
+            ]
+          },
+          {
+            slotId: "m4", time: "05:15 PM", label: "Pre-Gym / Office Wrap-Up",
+            options: [
+              { name: "1 Scoop Whey + 1 Apple / Banana + Creatine", sub: "Ideal pre-Leg Day fuel before leaving office", kcal: 210, prot: 25 },
+              { name: "20g Protein Bar + Espresso", sub: "Fast digesting carbs & protein", kcal: 230, prot: 20 }
+            ]
+          },
+          {
+            slotId: "m5", time: "08:45 PM", label: "Post-Workout Dinner",
+            options: [
+              { name: "150g Grilled Chicken / Fish + Dal + Amul Buttermilk", sub: "Replenishes glycogen & repairs leg muscles", kcal: 450, prot: 42 },
+              { name: "Air-Fried Soya Chunks + Curd Rice", sub: "Gut-friendly post-workout dinner", kcal: 430, prot: 28 }
+            ]
+          }
+        ]
+      },
+      Fri: {
+        label: "Friday · Office Day",
+        isOffice: true,
+        slots: [
+          {
+            slotId: "m1", time: "08:30 AM", label: "Pre-Office Breakfast",
+            options: [
+              { name: "Oats Smoothie + 1 Scoop Whey + Peanut Butter", sub: "Blend & drink in 2 minutes on Friday morning", kcal: 410, prot: 30 },
+              { name: "3 Boiled Eggs + Upma + Amul Buttermilk", sub: "Warm breakfast + 27g protein", kcal: 420, prot: 27 }
+            ]
+          },
+          {
+            slotId: "m2", time: "11:30 AM", label: "Office Desk Snack",
+            options: [
+              { name: "20g Protein Bar + Black Coffee", sub: "Prevents Friday office snacking on samosas/biscuits", kcal: 230, prot: 20 },
+              { name: "Roasted Chana (40g) + Amul Protein Buttermilk", sub: "High fiber & protein", kcal: 220, prot: 21 }
+            ]
+          },
+          {
+            slotId: "m3", time: "01:30 PM", label: "Office Lunch / Team Outing Safe Choice",
+            options: [
+              { name: "Chicken Shawarma Salad Bowl / Tandoori Half", sub: "Great if ordering in with office colleagues", kcal: 540, prot: 44 },
+              { name: "Paneer Tikka Roll (Whole Wheat) + Curd", sub: "Smart vegetarian Friday lunch", kcal: 530, prot: 26 }
+            ]
+          },
+          {
+            slotId: "m4", time: "05:30 PM", label: "Evening Fuel",
+            options: [
+              { name: "1 Scoop Whey Shake + 5g Creatine", sub: "Hits daily protein target effortlessly", kcal: 130, prot: 25 },
+              { name: "15g Protein Bar + Green Tea", sub: "Light evening bridge snack", kcal: 180, prot: 15 }
+            ]
+          },
+          {
+            slotId: "m5", time: "08:45 PM", label: "Friday Dinner",
+            options: [
+              { name: "4 Egg Bhurji + 2 Rotis + Green Salad", sub: "Quick, satisfying Friday night meal", kcal: 440, prot: 28 },
+              { name: "Dal Khichdi + 100g Roasted Paneer + Buttermilk", sub: "Comforting end-of-week dinner", kcal: 460, prot: 26 }
+            ]
+          }
+        ]
+      },
+      Sat: {
+        label: "Saturday · Conditioning & Weekend",
+        isOffice: false,
+        slots: [
+          {
+            slotId: "m1", time: "09:00 AM", label: "Pre-Workout Breakfast",
+            options: [
+              { name: "3 Eggs + 2 Toast + Black Coffee", sub: "Energizing weekend breakfast before Day 4 workout", kcal: 360, prot: 22 },
+              { name: "Oats + Banana + Amul Protein Buttermilk", sub: "Clean complex carbs for conditioning", kcal: 350, prot: 18 }
+            ]
+          },
+          {
+            slotId: "m2", time: "11:30 AM", label: "Post-Gym Recovery",
+            options: [
+              { name: "1.5 Scoop Whey + 5g Creatine", sub: "Immediate post-conditioning muscle recovery", kcal: 180, prot: 36 },
+              { name: "1 Scoop Whey + 20g Protein Bar", sub: "High-protein weekend refuel", kcal: 340, prot: 44 }
+            ]
+          },
+          {
+            slotId: "m3", time: "02:00 PM", label: "Weekend Home Lunch",
+            options: [
+              { name: "Home Chicken Curry (160g) + Rice + Salad", sub: "Freshly cooked weekend lunch", kcal: 550, prot: 42 },
+              { name: "Soya Chunk Pulao + Low-Fat Raita", sub: "1-pot high-protein vegetarian lunch", kcal: 500, prot: 29 }
+            ]
+          },
+          {
+            slotId: "m4", time: "05:30 PM", label: "Evening Snack",
+            options: [
+              { name: "20g Protein Bar or 3 Boiled Egg Whites", sub: "Keeps evening hunger in check before going out", kcal: 210, prot: 20 },
+              { name: "Amul High Protein Buttermilk + Makhana", sub: "Light 180 kcal snack", kcal: 180, prot: 16 }
+            ]
+          },
+          {
+            slotId: "m5", time: "08:45 PM", label: "Saturday Dinner (Flexible)",
+            options: [
+              { name: "Tandoori Chicken / Grilled Fish + Mint Chutney", sub: "Restaurant-friendly zero-guilt Saturday dinner", kcal: 460, prot: 42 },
+              { name: "Paneer Shashlik / Mushroom Tikka + Dal", sub: "High-protein vegetarian dining option", kcal: 450, prot: 26 }
+            ]
+          }
+        ]
+      },
+      Sun: {
+        label: "Sunday · Rest & Meal Prep",
+        isOffice: false,
+        slots: [
+          {
+            slotId: "m1", time: "09:30 AM", label: "Sunday Brunch",
+            options: [
+              { name: "Masala Omelette (4 Eggs) + 2 Toast", sub: "Relaxed Sunday morning high-protein brunch", kcal: 410, prot: 28 },
+              { name: "Paneer Paratha (Low Oil) + Curd + Buttermilk", sub: "Weekend treat fitted cleanly into macros", kcal: 440, prot: 24 }
+            ]
+          },
+          {
+            slotId: "m2", time: "12:30 PM", label: "Mid-Day Refuel",
+            options: [
+              { name: "Amul High Protein Buttermilk + 5g Creatine", sub: "Keep creatine saturated on rest days", kcal: 110, prot: 15 },
+              { name: "20g Protein Bar", sub: "Convenient grab-and-go snack while running errands", kcal: 225, prot: 20 }
+            ]
+          },
+          {
+            slotId: "m3", time: "02:30 PM", label: "Sunday Family Lunch",
+            options: [
+              { name: "150g Chicken / Mutton (Lean) + 2 Rotis + Salad", sub: "Enjoy Sunday lunch with portion control", kcal: 560, prot: 40 },
+              { name: "Dal Makhani (Light) + 120g Paneer + 1 Roti", sub: "Balanced Sunday lunch", kcal: 540, prot: 27 }
+            ]
+          },
+          {
+            slotId: "m4", time: "06:00 PM", label: "Evening Walk & Shake",
+            options: [
+              { name: "1 Scoop Whey Protein in Cold Water/Milk", sub: "Post 6,000-step Sunday walk shake", kcal: 140, prot: 25 },
+              { name: "Roasted Chana + Tea (Low Sugar)", sub: "Light evening snack", kcal: 160, prot: 10 }
+            ]
+          },
+          {
+            slotId: "m5", time: "08:30 PM", label: "Light Sunday Dinner",
+            options: [
+              { name: "Chicken Clear Soup / 3 Egg Whites + Dal", sub: "Wake up lean and energized for Monday", kcal: 360, prot: 30 },
+              { name: "Moong Dal Khichdi + Amul Protein Buttermilk", sub: "Easy digestion before the workweek", kcal: 380, prot: 22 }
+            ]
+          }
+        ]
+      }
+    };
+
+    /* =========================================================================
+       3. 8 TIMED HYDRATION CHECKPOINTS (3,500 ml Total)
+    ========================================================================= */
+    const WATER_SCHEDULE = [
+      { id: "w1", time: "08:30 AM", hour24: 8.5, ml: 500, title: "Wake-Up & Pre-Breakfast", sub: "Rehydrate immediately after 7–8 hrs sleep" },
+      { id: "w2", time: "10:30 AM", hour24: 10.5, ml: 450, title: "Office Desk Arrival", sub: "First bottle at work desk before meetings" },
+      { id: "w3", time: "12:30 PM", hour24: 12.5, ml: 450, title: "Pre-Lunch Hydration", sub: "30 mins before office tiffin improves satiety" },
+      { id: "w4", time: "02:30 PM", hour24: 14.5, ml: 450, title: "Post-Lunch Office Sip", sub: "Prevents afternoon energy slump at work" },
+      { id: "w5", time: "04:30 PM", hour24: 16.5, ml: 450, title: "Pre-Workout / Creatine Mix", sub: "Essential cellular hydration before training" },
+      { id: "w6", time: "06:30 PM", hour24: 18.5, ml: 500, title: "Intra / Post-Gym Refill", sub: "Replaces sweat loss during lifting session" },
+      { id: "w7", time: "08:00 PM", hour24: 20.0, ml: 400, title: "Pre-Dinner Glass", sub: "Supports digestion & evening recovery" },
+      { id: "w8", time: "09:15 PM", hour24: 21.25, ml: 300, title: "Final Evening Sip", sub: "Completes 3.5L goal without waking you at night" }
+    ];
+
+    const DAILY_HABITS = [
+      { id: "h_prot", title: "Hit 105g–115g+ Daily Protein", sub: "Office protein bars, chicken/eggs, whey, buttermilk" },
+      { id: "h_cal", title: "Stay in 1,500–1,800 kcal Cut Window", sub: "Consistent deficit without crash dieting" },
+      { id: "h_water", title: "Complete 3,500 ml Timed Hydration", sub: "All 8 workday water checkpoints" },
+      { id: "h_steps", title: "Complete 5,000–6,000+ Daily Steps", sub: "Office walks + evening stroll" },
+      { id: "h_workout", title: "Strict 4-Day Training / Recovery Cap", sub: "Focus on tendon recovery & progressive overload" }
+    ];
+
+    /* =========================================================================
+       4. STATE MANAGEMENT & PERSISTENCE
+    ========================================================================= */
+    const STORAGE_KEY = "hig_fitness_v4_mastery";
+
+    function todayISO() {
+      return new Date().toISOString().split("T")[0];
+    }
+
+    function currentWeekdayCode() {
+      const codes = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      return codes[new Date().getDay()] || "Mon";
+    }
+
+    function buildInitialState() {
+      return {
+        currentView: "workouts",
+        fuelSubtab: "meals",
+        selectedWeekday: currentWeekdayCode(),
+        activeDay: 1,
+        acclimationMode: true,
+        calorieTarget: 1650,
+        waterAlertsEnabled: false,
+        lastWaterAlertSlot: null,
+        activeOptionBySlot: {},
+        exerciseLogs: {},
+        dailyFuel: {},
+        weightLog: [
+          { date: "2026-11-04", kg: 78.0 },
+          { date: "2026-11-11", kg: 77.4 },
+          { date: "2026-11-18", kg: 76.9 }
+        ],
+        sessionsCompleted: 0
+      };
+    }
+
+    let state = loadState();
+    let activeSwapSlotId = null;
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          return { ...buildInitialState(), ...JSON.parse(raw) };
+        }
+      } catch (e) {
+        console.error(e);
+      }
+      return buildInitialState();
+    }
+
+    function persistState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function getActiveOption(slot) {
+      const savedId = state.activeOptionBySlot[slot.slotId];
+      if (savedId) {
+        const found = slot.options.find(o => o.id === savedId);
+        if (found) return found;
+      }
+      return slot.options[0];
+    }
+
+    function getNextTierOption(slot, currentOption) {
+      const nextTierNum = (currentOption.tier || 1) + 1;
+      return slot.options.find(o => o.tier === nextTierNum) || null;
+    }
+
+    function getExerciseRecord(slot, option) {
+      if (!state.exerciseLogs[option.id]) {
+        state.exerciseLogs[option.id] = {
+          prevWeight: option.startKg,
+          prevReps: slot.minReps,
+          effort: "good", // 'easy' | 'good' | 'hard'
+          suggestedNextKg: option.startKg,
+          suggestionNote: `Target: ${option.masteryKg} kg × ${slot.maxReps} reps for Mastery`,
+          masteryStreak: 0, // 0, 1, or 2 (2 consecutive sessions at Mastery Load + Max Reps unlocks next tier)
+          levelUps: 0,
+          sets: Array.from({ length: slot.sets }, () => ({
+            kg: option.startKg,
+            reps: slot.minReps,
+            done: false
+          }))
+        };
+      }
+      return state.exerciseLogs[option.id];
+    }
+
+    function computeMasteryMetrics(slot, option, rec) {
+      const currentKg = parseFloat(rec.sets[0]?.kg) ?? option.startKg;
+      const minRepsDone = Math.min(...rec.sets.map(s => parseInt(s.reps, 10) || 0));
+
+      // Load progress percentage from startKg to masteryKg
+      const span = Math.max(2.5, option.masteryKg - option.startKg);
+      const loadRatio = Math.max(0, Math.min(1, (currentKg - option.startKg) / span));
+
+      const gate1Load = currentKg >= option.masteryKg;
+      const gate2Reps = minRepsDone >= slot.maxReps;
+      const gate3Control = (rec.effort === "easy" || rec.effort === "good") && (rec.masteryStreak >= 2 || (gate1Load && gate2Reps && rec.masteryStreak >= 1));
+
+      const nextTierOpt = getNextTierOption(slot, option);
+      const readyToGraduate = gate1Load && gate2Reps && (rec.masteryStreak >= 2 || rec.levelUps >= 3) && !!nextTierOpt;
+
+      const pct = Math.min(100, Math.round(
+        (loadRatio * 65) +
+        (gate2Reps ? 20 : 0) +
+        (Math.min(2, rec.masteryStreak) * 7.5)
+      ));
+
+      return {
+        currentKg,
+        minRepsDone,
+        gate1Load,
+        gate2Reps,
+        gate3Control,
+        pct,
+        nextTierOpt,
+        readyToGraduate
+      };
+    }
+
+    /* =========================================================================
+       5. NAVIGATION & TOAST FEEDBACK
+    ========================================================================= */
+    let toastTimer = null;
+    function notifyUser(message, colorHex = "#30D158") {
+      const toast = document.getElementById("ios-toast");
+      document.getElementById("ios-toast-text").textContent = message;
+      document.getElementById("ios-toast-dot").style.backgroundColor = colorHex;
+      toast.classList.remove("opacity-0", "-translate-y-2");
+      toast.classList.add("opacity-100", "translate-y-0");
+      if (toastTimer) clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.remove("opacity-100", "translate-y-0");
+        toast.classList.add("opacity-0", "-translate-y-2");
+      }, 2600);
+    }
+
+    function switchView(view) {
+      state.currentView = view;
+      persistState();
+
+      ["workouts", "fuel", "progress"].forEach(v => {
+        const mainEl = document.getElementById(`view-${v}`);
+        const btnEl = document.getElementById(`tabbtn-${v}`);
+        if (v === view) {
+          mainEl.classList.remove("hidden");
+          btnEl.style.color = "var(--ios-blue)";
+        } else {
+          mainEl.classList.add("hidden");
+          btnEl.style.color = "var(--ios-label-secondary)";
+        }
+      });
+
+      const titleEl = document.getElementById("header-large-title");
+      const subEl = document.getElementById("header-subtitle");
+      const rightEl = document.getElementById("header-session-counter");
+
+      if (view === "workouts") {
+        subEl.textContent = "MASTERY ENGINE · RETURN TO GYM";
+        titleEl.textContent = "Workouts";
+        rightEl.textContent = `${state.sessionsCompleted} Sessions`;
+        renderWorkoutsView();
+      } else if (view === "fuel") {
+        subEl.textContent = "7-DAY OFFICE FUEL & 3.5L WATER";
+        titleEl.textContent = "Fuel & Water";
+        rightEl.textContent = `${state.selectedWeekday}`;
+        renderFuelView();
+      } else {
+        subEl.textContent = "AI COACH & TIER MATRIX";
+        titleEl.textContent = "Progress";
+        rightEl.textContent = state.acclimationMode ? "Safe Cap On" : "Standard";
+        renderProgressView();
+      }
+    }
+
+    function openMasteryRulesSheet() {
+      document.getElementById("sheet-slot-title").textContent = "How the App Knows You Mastered It";
+      document.getElementById("sheet-slot-subtitle").textContent = "Deterministic 3-Gate Progression Algorithm";
+
+      document.getElementById("sheet-options-list").innerHTML = `
+        <div class="space-y-3 text-[13px] leading-relaxed" style="color: rgba(235, 235, 245, 0.85);">
+          <div class="ios-well p-3.5 space-y-1">
+            <div class="font-semibold text-white flex items-center justify-between">
+              <span>1. Micro-Progression (Every Session)</span>
+              <span class="text-[11px] px-2 py-0.5 rounded-full" style="background-color: rgba(10,132,255,0.18); color: var(--ios-blue);">+1.25 to +2.5 kg</span>
+            </div>
+            <p style="color: var(--ios-label-secondary);">
+              Whenever you hit the top of the rep range (e.g., all sets at 10 reps) and mark your feel as <strong class="text-white">Easy</strong> or <strong class="text-white">Good Form</strong>, the app automatically increments your target weight for next week.
+            </p>
+          </div>
+
+          <div class="ios-well p-3.5 space-y-1.5">
+            <div class="font-semibold text-white flex items-center justify-between">
+              <span>2. The 3-Gate Tier Mastery Rule</span>
+              <span class="text-[11px] px-2 py-0.5 rounded-full" style="background-color: rgba(48,209,88,0.18); color: var(--ios-green);">Tier 1 → Tier 2 → Pro</span>
+            </div>
+            <p style="color: var(--ios-label-secondary);">
+              An exercise unlocks its <strong class="text-white">Intermediate</strong> or <strong class="text-white">Pro</strong> Tier variation when all 3 gates are met:
+            </p>
+            <ul class="space-y-1 pt-1 text-[12px]" style="color: rgba(235,235,245,0.8);">
+              <li>• <strong class="text-white">Gate 1 (Load):</strong> Reach the movement's Mastery Target Weight (e.g., 7.5 kg → 15 kg on DB Press).</li>
+              <li>• <strong class="text-white">Gate 2 (Volume):</strong> Complete the maximum target reps across all working sets.</li>
+              <li>• <strong class="text-white">Gate 3 (Tendon Control):</strong> Log 2 sessions at Mastery Load with <strong class="text-white">Good Form / Easy</strong> effort (never grinding).</li>
+            </ul>
+          </div>
+
+          <div class="ios-well p-3.5">
+            <div class="font-semibold text-white">Manual Override Anytime</div>
+            <p class="text-[12px] mt-0.5" style="color: var(--ios-label-secondary);">
+              Tap <strong class="text-white">Swap / Tiers</strong> on any exercise card to switch between Machines, Dumbbells, or jump directly to Intermediate/Pro tiers.
+            </p>
+          </div>
+        </div>
+      `;
+
+      showBottomSheet();
+    }
+
+    /* =========================================================================
+       6. TAB 1: WORKOUTS & 3-GATE MASTERY ENGINE
+    ========================================================================= */
+    function selectDay(dayNum) {
+      state.activeDay = dayNum;
+      persistState();
+      renderWorkoutsView();
+    }
+
+    function adjustSetKg(optionId, setIndex, delta) {
+      const rec = state.exerciseLogs[optionId];
+      if (!rec || !rec.sets[setIndex]) return;
+      const nextVal = Math.max(0, Math.round((parseFloat(rec.sets[setIndex].kg || 0) + delta) * 100) / 100);
+      rec.sets[setIndex].kg = nextVal;
+      persistState();
+      renderWorkoutsView();
+    }
+
+    function handleDirectInput(optionId, setIndex, field, rawVal) {
+      const rec = state.exerciseLogs[optionId];
+      if (!rec || !rec.sets[setIndex]) return;
+      const num = Math.max(0, parseFloat(rawVal) || 0);
+      rec.sets[setIndex][field] = num;
+      persistState();
+      renderWorkoutsView();
+    }
+
+    function toggleSetCompleted(optionId, setIndex) {
+      const rec = state.exerciseLogs[optionId];
+      if (!rec || !rec.sets[setIndex]) return;
+      rec.sets[setIndex].done = !rec.sets[setIndex].done;
+      persistState();
+      renderWorkoutsView();
+      if (rec.sets[setIndex].done) {
+        triggerRestTimer(90);
+      }
+    }
+
+    function setExerciseEffort(optionId, effortLevel) {
+      const rec = state.exerciseLogs[optionId];
+      if (!rec) return;
+      rec.effort = effortLevel;
+      persistState();
+      renderWorkoutsView();
+    }
+
+    function applySuggestedWeight(optionId, newKg) {
+      const rec = state.exerciseLogs[optionId];
+      if (!rec) return;
+      rec.sets.forEach(s => { s.kg = newKg; });
+      persistState();
+      renderWorkoutsView();
+      notifyUser(`Updated working sets to ${newKg} kg`, "#0A84FF");
+    }
+
+    function promoteExerciseTier(slotId, nextOptionId) {
+      state.activeOptionBySlot[slotId] = nextOptionId;
+      persistState();
+      renderWorkoutsView();
+      notifyUser("Graduated to Next Mastery Tier!", "#30D158");
+    }
+
+    function fastTrackMasteryDemo(slotId) {
+      const split = WORKOUT_SPLITS[state.activeDay];
+      const slot = split.slots.find(s => s.slotId === slotId);
+      if (!slot) return;
+      const opt = getActiveOption(slot);
+      const rec = getExerciseRecord(slot, opt);
+
+      rec.sets.forEach(s => {
+        s.kg = opt.masteryKg;
+        s.reps = slot.maxReps;
+        s.done = true;
+      });
+      rec.effort = "good";
+      rec.masteryStreak = 2;
+      rec.levelUps = 3;
+      persistState();
+      closeSwapSheet();
+      renderWorkoutsView();
+      notifyUser(`Mastery unlocked for ${opt.name}!`, "#30D158");
+    }
+
+    function evaluateExerciseProgression(slot, option, rec) {
+      const completed = rec.sets.filter(s => s.done);
+      const refSets = completed.length > 0 ? completed : rec.sets;
+      const currentKg = parseFloat(refSets[0].kg) || 0;
+      const minRepsDone = Math.min(...refSets.map(s => parseInt(s.reps, 10) || 0));
+
+      rec.prevWeight = currentKg;
+      rec.prevReps = minRepsDone;
+
+      const increment = state.acclimationMode
+        ? (slot.stepKg > 0 ? Math.min(slot.stepKg, 2.5) : 0)
+        : slot.stepKg;
+
+      if (rec.effort === "hard") {
+        rec.suggestedNextKg = currentKg;
+        rec.suggestionNote = "Hold load · Let tendons adapt";
+      } else if (minRepsDone >= slot.maxReps && (rec.effort === "easy" || rec.effort === "good")) {
+        // Check if already at or above Mastery Target Kg
+        if (currentKg >= option.masteryKg) {
+          rec.masteryStreak = (rec.masteryStreak || 0) + 1;
+        }
+        if (increment > 0 && currentKg < option.masteryKg) {
+          rec.suggestedNextKg = Math.round((currentKg + increment) * 100) / 100;
+          rec.levelUps = (rec.levelUps || 0) + 1;
+          rec.suggestionNote = `+${increment} kg unlocked (${rec.suggestedNextKg} / ${option.masteryKg} kg Mastery)`;
+          if (rec.suggestedNextKg >= option.masteryKg) {
+            rec.masteryStreak = Math.max(1, rec.masteryStreak || 0);
+          }
+        } else {
+          rec.suggestedNextKg = currentKg;
+          rec.suggestionNote = rec.masteryStreak >= 2
+            ? "All 3 Mastery Gates passed · Ready to upgrade Tier!"
+            : `Mastery Load hit (${rec.masteryStreak}/2 verification sessions)`;
+        }
+      } else {
+        rec.suggestedNextKg = currentKg;
+        rec.suggestionNote = `Build to ${slot.maxReps} reps · Goal: ${option.masteryKg} kg`;
+      }
+    }
+
+    function completeWorkoutSession() {
+      const split = WORKOUT_SPLITS[state.activeDay];
+      let progressedCount = 0;
+      let masteryReadyCount = 0;
+
+      split.slots.forEach(slot => {
+        const opt = getActiveOption(slot);
+        const rec = getExerciseRecord(slot, opt);
+        evaluateExerciseProgression(slot, opt, rec);
+        if (rec.suggestedNextKg > rec.prevWeight) progressedCount++;
+
+        const m = computeMasteryMetrics(slot, opt, rec);
+        if (m.readyToGraduate) masteryReadyCount++;
+
+        rec.sets.forEach(s => {
+          s.done = false;
+          s.kg = rec.suggestedNextKg;
+        });
+      });
+
+      state.sessionsCompleted += 1;
+      const todayFuel = getTodayFuelRecord();
+      todayFuel.habits.h_workout = true;
+      dismissRestTimer();
+      persistState();
+      renderWorkoutsView();
+      document.getElementById("header-session-counter").textContent = `${state.sessionsCompleted} Sessions`;
+
+      if (masteryReadyCount > 0) {
+        notifyUser(`Session saved · ${masteryReadyCount} exercise(s) ready for Tier Upgrade!`, "#30D158");
+      } else {
+        notifyUser(`Session saved · ${progressedCount} loads increased for next week`);
+      }
+    }
+
+    function renderWorkoutsView() {
+      const day = state.activeDay;
+      [1, 2, 3, 4].forEach(d => {
+        const btn = document.getElementById(`seg-day-${d}`);
+        if (d === day) btn.classList.add("active");
+        else btn.classList.remove("active");
+      });
+
+      const split = WORKOUT_SPLITS[day];
+      document.getElementById("day-focus-title").textContent = split.name;
+      document.getElementById("day-focus-note").textContent = split.subtitle;
+
+      let totalSets = 0;
+      let doneSets = 0;
+      let highestTierOnDay = 1;
+
+      const cardsHtml = split.slots.map((slot, index) => {
+        const opt = getActiveOption(slot);
+        const rec = getExerciseRecord(slot, opt);
+        const mastery = computeMasteryMetrics(slot, opt, rec);
+
+        if ((opt.tier || 1) > highestTierOnDay) highestTierOnDay = opt.tier;
+
+        totalSets += slot.sets;
+        const slotDone = rec.sets.filter(s => s.done).length;
+        doneSets += slotDone;
+
+        const tierColors = {
+          1: { bg: "rgba(48, 209, 88, 0.15)", text: "#30D158", label: "Tier 1 · Foundation" },
+          2: { bg: "rgba(10, 132, 255, 0.18)", text: "#0A84FF", label: "Tier 2 · Intermediate" },
+          3: { bg: "rgba(191, 90, 242, 0.2)", text: "#BF5AF2", label: "Tier 3 · Pro Mastery" }
+        };
+        const tStyle = tierColors[opt.tier || 1];
+
+        const setRowsHtml = rec.sets.map((s, sIdx) => `
+          <div class="grid grid-cols-12 items-center py-2 px-3 ${sIdx > 0 ? "ios-hairline-t" : ""}">
+            <div class="col-span-1">
+              <span class="text-[13px] font-semibold tabular-nums" style="color: ${s.done ? "var(--ios-green)" : "var(--ios-label-secondary)"};">
+                ${sIdx + 1}
+              </span>
+            </div>
+
+            <div class="col-span-3">
+              <span class="text-[12px] tabular-nums" style="color: var(--ios-label-secondary);">
+                ${rec.prevWeight}kg × ${rec.prevReps}
+              </span>
+            </div>
+
+            <div class="col-span-4 flex items-center justify-center gap-1">
+              <button onclick="adjustSetKg('${opt.id}', ${sIdx}, -1.25)" class="w-6 h-7 rounded-[7px] ios-well text-[14px] font-medium text-zinc-300 active:opacity-60">−</button>
+              <input
+                type="number"
+                step="0.5"
+                value="${s.kg}"
+                onchange="handleDirectInput('${opt.id}', ${sIdx}, 'kg', this.value)"
+                class="w-14 h-7 ios-well text-center text-[14px] font-semibold text-white tabular-nums focus:outline-none"
+              />
+              <button onclick="adjustSetKg('${opt.id}', ${sIdx}, 1.25)" class="w-6 h-7 rounded-[7px] ios-well text-[14px] font-medium text-zinc-300 active:opacity-60">+</button>
+            </div>
+
+            <div class="col-span-2 flex justify-center">
+              <input
+                type="number"
+                value="${s.reps}"
+                onchange="handleDirectInput('${opt.id}', ${sIdx}, 'reps', this.value)"
+                class="w-12 h-7 ios-well text-center text-[14px] font-semibold text-white tabular-nums focus:outline-none"
+              />
+            </div>
+
+            <div class="col-span-2 flex justify-end">
+              <button
+                onclick="toggleSetCompleted('${opt.id}', ${sIdx})"
+                aria-label="Complete set ${sIdx + 1}"
+                class="w-7 h-7 rounded-full flex items-center justify-center transition active:scale-90"
+                style="background-color: ${s.done ? "var(--ios-green)" : "rgba(118, 118, 128, 0.24)"}; color: ${s.done ? "#000000" : "rgba(235, 235, 245, 0.4)"};"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        `).join("");
+
+        return `
+          <section class="ios-card overflow-hidden">
+            <!-- Card Header -->
+            <div class="p-3.5 pb-2.5 flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <div class="flex items-center gap-1.5 flex-wrap">
+                  <span class="text-[11px] font-semibold px-2 py-0.5 rounded-full" style="background-color: ${tStyle.bg}; color: ${tStyle.text};">
+                    ${tStyle.label}
+                  </span>
+                  <span class="text-[11px] font-medium tabular-nums" style="color: var(--ios-label-secondary);">
+                    ${slot.repRangeText} · ${opt.unitNote}
+                  </span>
+                </div>
+                <h3 class="text-[16px] font-semibold text-white mt-1 truncate">${opt.name}</h3>
+                <p class="text-[12px] mt-0.5 leading-snug" style="color: rgba(235, 235, 245, 0.55);">
+                  ${opt.bioNote}
+                </p>
+              </div>
+
+              <button onclick="openSwapSheet('${slot.slotId}')" class="shrink-0 px-2.5 py-1.5 rounded-full ios-well text-[12px] font-medium flex items-center gap-1 active:opacity-70" style="color: var(--ios-blue);">
+                <span>Tiers / Swap</span>
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
+                </svg>
+              </button>
+            </div>
+
+            <!-- 3-Gate Mastery Progress Bar -->
+            <div class="px-3.5 pb-2.5">
+              <div class="ios-well px-3 py-2 space-y-1.5">
+                <div class="flex items-center justify-between text-[11px] tabular-nums">
+                  <span class="font-medium" style="color: var(--ios-label-secondary);">
+                    Mastery Goal: <strong class="text-white">${mastery.currentKg} / ${opt.masteryKg} kg</strong> × ${slot.maxReps}r
+                  </span>
+                  <div class="flex items-center gap-1.5">
+                    <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold" style="color: ${mastery.gate1Load ? "var(--ios-green)" : "var(--ios-label-secondary)"};">
+                      ${mastery.gate1Load ? "✓ Load" : "○ Load"}
+                    </span>
+                    <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold" style="color: ${mastery.gate2Reps ? "var(--ios-green)" : "var(--ios-label-secondary)"};">
+                      ${mastery.gate2Reps ? "✓ Reps" : "○ Reps"}
+                    </span>
+                    <span class="px-1.5 py-0.2 rounded text-[10px] font-semibold" style="color: ${mastery.gate3Control ? "var(--ios-green)" : "var(--ios-label-secondary)"};">
+                      ${mastery.gate3Control ? "✓ Form" : "○ Form"}
+                    </span>
+                  </div>
+                </div>
+                <div class="w-full h-1.5 rounded-full overflow-hidden bg-black/40">
+                  <div class="h-full rounded-full transition-all duration-300" style="width: ${mastery.pct}%; background-color: ${mastery.readyToGraduate ? "var(--ios-green)" : "var(--ios-blue)"};"></div>
+                </div>
+              </div>
+
+              ${mastery.readyToGraduate && mastery.nextTierOpt ? `
+                <div class="mt-2 p-2.5 rounded-[10px] flex items-center justify-between gap-2" style="background-color: rgba(48, 209, 88, 0.14); border: 0.5px solid rgba(48, 209, 88, 0.4);">
+                  <div class="min-w-0">
+                    <div class="text-[11px] font-bold uppercase tracking-wider" style="color: var(--ios-green);">Mastery Achieved</div>
+                    <div class="text-[12px] text-white truncate">Unlock ${mastery.nextTierOpt.tierName}: ${mastery.nextTierOpt.name}</div>
+                  </div>
+                  <button onclick="promoteExerciseTier('${slot.slotId}', '${mastery.nextTierOpt.id}')" class="shrink-0 px-3 py-1.5 rounded-lg text-[12px] font-bold text-black active:opacity-80" style="background-color: var(--ios-green);">
+                    Upgrade ↑
+                  </button>
+                </div>
+              ` : ""}
+            </div>
+
+            <!-- Column Headers -->
+            <div class="grid grid-cols-12 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider ios-hairline-t" style="color: var(--ios-label-secondary); background-color: rgba(255,255,255,0.02);">
+              <div class="col-span-1">Set</div>
+              <div class="col-span-3">Previous</div>
+              <div class="col-span-4 text-center">kg</div>
+              <div class="col-span-2 text-center">Reps</div>
+              <div class="col-span-2 text-right">Done</div>
+            </div>
+
+            <!-- Set Rows -->
+            <div>${setRowsHtml}</div>
+
+            <!-- Footer: Session Effort Selector & Smart Progression Hint -->
+            <div class="px-3.5 py-2.5 ios-hairline-t flex items-center justify-between gap-2" style="background-color: rgba(255,255,255,0.015);">
+              <div class="flex items-center gap-1">
+                <span class="text-[11px] font-medium mr-1" style="color: var(--ios-label-secondary);">Feel:</span>
+                ${[
+                  { key: "easy", label: "Easy" },
+                  { key: "good", label: "Good Form" },
+                  { key: "hard", label: "Heavy" }
+                ].map(item => `
+                  <button
+                    onclick="setExerciseEffort('${opt.id}', '${item.key}')"
+                    class="px-2 py-0.5 rounded-[6px] text-[11px] font-medium transition"
+                    style="background-color: ${rec.effort === item.key ? "rgba(10, 132, 255, 0.22)" : "transparent"}; color: ${rec.effort === item.key ? "var(--ios-blue)" : "var(--ios-label-secondary)"};"
+                  >
+                    ${item.label}
+                  </button>
+                `).join("")}
+              </div>
+
+              <span class="text-[11px] tabular-nums truncate" style="color: var(--ios-label-secondary);">
+                ${rec.suggestionNote}
+              </span>
+            </div>
+          </section>
+        `;
+      }).join("");
+
+      document.getElementById("workout-cards-list").innerHTML = cardsHtml;
+      document.getElementById("day-progress-fraction").textContent = `${doneSets}/${totalSets}`;
+      document.getElementById("day-tier-badge").textContent = `Tier ${highestTierOnDay}`;
+    }
+
+    /* =========================================================================
+       7. NATIVE iOS BOTTOM SHEET FOR SWAPS & TIER PROGRESSION
+    ========================================================================= */
+    function showBottomSheet() {
+      const backdrop = document.getElementById("sheet-backdrop");
+      const panel = document.getElementById("sheet-panel");
+      backdrop.classList.remove("hidden");
+      requestAnimationFrame(() => {
+        backdrop.classList.remove("opacity-0");
+        backdrop.classList.add("opacity-100");
+        panel.classList.remove("translate-y-full");
+        panel.classList.add("translate-y-0");
+      });
+    }
+
+    function openSwapSheet(slotId) {
+      activeSwapSlotId = slotId;
+      const split = WORKOUT_SPLITS[state.activeDay];
+      const slot = split.slots.find(s => s.slotId === slotId);
+      if (!slot) return;
+
+      const currentOpt = getActiveOption(slot);
+      document.getElementById("sheet-slot-title").textContent = currentOpt.name;
+      document.getElementById("sheet-slot-subtitle").textContent = "Select a Machine/DB alternative or graduate to Advanced/Pro Tier";
+
+      const tierBadgeMap = {
+        1: { label: "Tier 1 · Return-to-Gym Foundation", color: "#30D158" },
+        2: { label: "Tier 2 · Intermediate Hypertrophy", color: "#0A84FF" },
+        3: { label: "Tier 3 · Pro Athletic Mastery", color: "#BF5AF2" }
+      };
+
+      const listHtml = slot.options.map(opt => {
+        const isSelected = opt.id === currentOpt.id;
+        const tMeta = tierBadgeMap[opt.tier || 1];
+        return `
+          <button
+            onclick="chooseSwapOption('${slot.slotId}', '${opt.id}')"
+            class="w-full p-3.5 rounded-[12px] text-left flex items-start justify-between gap-3 transition active:opacity-80"
+            style="background-color: ${isSelected ? "rgba(10, 132, 255, 0.16)" : "var(--ios-elevated)"}; border: 0.5px solid ${isSelected ? "var(--ios-blue)" : "transparent"};"
+          >
+            <div>
+              <div class="text-[11px] font-semibold uppercase tracking-wider" style="color: ${tMeta.color};">
+                ${tMeta.label}
+              </div>
+              <div class="text-[15px] font-semibold text-white mt-0.5">${opt.name}</div>
+              <div class="text-[12px] mt-0.5" style="color: var(--ios-label-secondary);">${opt.bioNote}</div>
+              <div class="text-[12px] mt-1 font-medium tabular-nums" style="color: var(--ios-blue);">
+                Start: ${opt.startKg} kg → Mastery Target: ${opt.masteryKg} kg (${opt.unitNote})
+              </div>
+            </div>
+            <div class="shrink-0 mt-1">
+              ${isSelected ? `
+                <span class="w-5 h-5 rounded-full flex items-center justify-center text-[12px] font-bold text-white" style="background-color: var(--ios-blue);">✓</span>
+              ` : ""}
+            </div>
+          </button>
+        `;
+      }).join("");
+
+      const demoBtnHtml = `
+        <div class="pt-2 ios-hairline-t mt-3">
+          <button onclick="fastTrackMasteryDemo('${slot.slotId}')" class="w-full py-2.5 rounded-[10px] ios-well text-[12px] font-semibold active:opacity-75" style="color: var(--ios-green);">
+            ⚡ Simulate 3-Gate Mastery & Preview Tier Upgrade Banner
+          </button>
+        </div>
+      `;
+
+      document.getElementById("sheet-options-list").innerHTML = listHtml + demoBtnHtml;
+      showBottomSheet();
+    }
+
+    function closeSwapSheet() {
+      const backdrop = document.getElementById("sheet-backdrop");
+      const panel = document.getElementById("sheet-panel");
+      backdrop.classList.remove("opacity-100");
+      backdrop.classList.add("opacity-0");
+      panel.classList.remove("translate-y-0");
+      panel.classList.add("translate-y-full");
+      setTimeout(() => {
+        backdrop.classList.add("hidden");
+      }, 250);
+    }
+
+    function chooseSwapOption(slotId, optionId) {
+      state.activeOptionBySlot[slotId] = optionId;
+      persistState();
+      closeSwapSheet();
+      renderWorkoutsView();
+      notifyUser("Switched exercise variation & tier", "#0A84FF");
+    }
+
+    /* =========================================================================
+       8. DYNAMIC ISLAND REST TIMER
+    ========================================================================= */
+    let restInterval = null;
+    let restTotalSeconds = 90;
+    let restRemainingSeconds = 90;
+
+    function formatClock(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    }
+
+    function triggerRestTimer(seconds = 90) {
+      if (restInterval) clearInterval(restInterval);
+      restTotalSeconds = seconds;
+      restRemainingSeconds = seconds;
+
+      const pill = document.getElementById("rest-timer-pill");
+      pill.classList.remove("hidden");
+      updateTimerVisuals();
+
+      restInterval = setInterval(() => {
+        restRemainingSeconds -= 1;
+        if (restRemainingSeconds <= 0) {
+          dismissRestTimer();
+          playGentleChime();
+          notifyUser("Rest complete · Ready for next set", "#0A84FF");
+        } else {
+          updateTimerVisuals();
+        }
+      }, 1000);
+    }
+
+    function updateTimerVisuals() {
+      document.getElementById("timer-readout").textContent = formatClock(restRemainingSeconds);
+      const circumference = 94.2;
+      const ratio = Math.max(0, Math.min(1, restRemainingSeconds / restTotalSeconds));
+      document.getElementById("timer-ring-circle").style.strokeDashoffset = circumference * (1 - ratio);
+    }
+
+    function shiftRestTimer(deltaSec) {
+      restRemainingSeconds = Math.max(5, restRemainingSeconds + deltaSec);
+      restTotalSeconds = Math.max(restTotalSeconds, restRemainingSeconds);
+      updateTimerVisuals();
+    }
+
+    function dismissRestTimer() {
+      if (restInterval) clearInterval(restInterval);
+      document.getElementById("rest-timer-pill").classList.add("hidden");
+    }
+
+    /* =========================================================================
+       9. TAB 2: 7-DAY OFFICE FUEL & TIMED HYDRATION ENGINE
+    ========================================================================= */
+    function getTodayFuelRecord() {
+      const key = `${todayISO()}_${state.selectedWeekday}`;
+      if (!state.dailyFuel[key]) {
+        state.dailyFuel[key] = {
+          checkedSlots: {}, // e.g. { m1: true, m2: false }
+          slotOptionIdx: {}, // e.g. { m1: 0, m2: 1 }
+          extraMeals: [],
+          checkedWater: {}, // e.g. { w1: true, w2: true }
+          steps: 0,
+          habits: {
+            h_prot: false,
+            h_cal: false,
+            h_water: false,
+            h_steps: false,
+            h_workout: false
+          }
+        };
+      }
+      return state.dailyFuel[key];
+    }
+
+    function switchFuelSubtab(sub) {
+      state.fuelSubtab = sub;
+      persistState();
+      renderFuelView();
+    }
+
+    function selectWeekday(dayCode) {
+      state.selectedWeekday = dayCode;
+      document.getElementById("header-session-counter").textContent = dayCode;
+      persistState();
+      renderFuelView();
+    }
+
+    function toggleTimedMealCheck(slotId) {
+      const rec = getTodayFuelRecord();
+      rec.checkedSlots[slotId] = !rec.checkedSlots[slotId];
+      syncFuelHabits(rec);
+      persistState();
+      renderFuelView();
+      if (rec.checkedSlots[slotId]) {
+        notifyUser("Meal logged to daily macros", "#30D158");
+      }
+    }
+
+    function cycleTimedMealOption(slotId, maxOptions) {
+      const rec = getTodayFuelRecord();
+      const currentIdx = rec.slotOptionIdx[slotId] || 0;
+      rec.slotOptionIdx[slotId] = (currentIdx + 1) % maxOptions;
+      syncFuelHabits(rec);
+      persistState();
+      renderFuelView();
+    }
+
+    function toggleCustomFoodRow() {
+      document.getElementById("custom-food-drawer").classList.toggle("hidden");
+    }
+
+    function submitCustomFood() {
+      const titleEl = document.getElementById("custom-food-title");
+      const kcalEl = document.getElementById("custom-food-kcal");
+      const protEl = document.getElementById("custom-food-prot");
+
+      const title = titleEl.value.trim() || "Office Snack";
+      const kcal = Math.max(0, parseInt(kcalEl.value, 10) || 0);
+      const prot = Math.max(0, parseInt(protEl.value, 10) || 0);
+      if (!kcal && !prot) return;
+
+      const rec = getTodayFuelRecord();
+      rec.extraMeals.push({ id: Date.now(), title, kcal, prot });
+      syncFuelHabits(rec);
+      persistState();
+      renderFuelView();
+
+      titleEl.value = "";
+      kcalEl.value = "";
+      protEl.value = "";
+      document.getElementById("custom-food-drawer").classList.add("hidden");
+      notifyUser(`Added +${prot}g Protein · ${kcal} kcal`);
+    }
+
+    function removeExtraMeal(id) {
+      const rec = getTodayFuelRecord();
+      rec.extraMeals = rec.extraMeals.filter(m => m.id !== id);
+      syncFuelHabits(rec);
+      persistState();
+      renderFuelView();
+    }
+
+    function clearExtraMeals() {
+      const rec = getTodayFuelRecord();
+      rec.extraMeals = [];
+      syncFuelHabits(rec);
+      persistState();
+      renderFuelView();
+    }
+
+    /* ---- SMART HYDRATION & NOTIFICATION ENGINE ---- */
+    function playGentleChime() {
+      try {
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtx) return;
+        const ctx = new AudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.18); // A5
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.35);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.36);
+      } catch (e) {
+        // Ignore audio context restriction if no user gesture
+      }
+    }
+
+    async function toggleWaterNotifications() {
+      state.waterAlertsEnabled = !state.waterAlertsEnabled;
+      if (state.waterAlertsEnabled && "Notification" in window && Notification.permission === "default") {
+        try {
+          await Notification.requestPermission();
+        } catch (e) {}
+      }
+      persistState();
+      renderFuelView();
+      if (state.waterAlertsEnabled) {
+        playGentleChime();
+        notifyUser("Timely Hydration Reminders Active (08:30 AM – 09:15 PM)", "#64D2FF");
+      } else {
+        notifyUser("Hydration Reminders Paused", "#FF9F0A");
+      }
+    }
+
+    function getNextUnloggedWaterSlot(rec) {
+      return WATER_SCHEDULE.find(slot => !rec.checkedWater[slot.id]) || null;
+    }
+
+    function testWaterReminderAlert() {
+      const rec = getTodayFuelRecord();
+      const nextSlot = getNextUnloggedWaterSlot(rec) || WATER_SCHEDULE[0];
+      playGentleChime();
+      notifyUser(`💧 Hydration Reminder: Drink ${nextSlot.ml} ml (${nextSlot.title})`, "#64D2FF");
+
+      if ("Notification" in window && Notification.permission === "granted") {
+        try {
+          new Notification("Hydration Checkpoint", {
+            body: `${nextSlot.time}: Drink ${nextSlot.ml} ml — ${nextSlot.title} to stay on pace for 3.5L.`
+          });
+        } catch (e) {}
+      }
+    }
+
+    function toggleWaterSlot(slotId) {
+      const rec = getTodayFuelRecord();
+      rec.checkedWater[slotId] = !rec.checkedWater[slotId];
+      syncFuelHabits(rec);
+      persistState();
+      renderFuelView();
+      if (rec.checkedWater[slotId]) {
+        const slot = WATER_SCHEDULE.find(s => s.id === slotId);
+        notifyUser(`Logged +${slot ? slot.ml : 450} ml water`, "#64D2FF");
+      }
+    }
+
+    function logNextScheduledWater() {
+      const rec = getTodayFuelRecord();
+      const nextSlot = getNextUnloggedWaterSlot(rec);
+      if (!nextSlot) {
+        notifyUser("3,500 ml daily goal already completed!", "#30D158");
+        return;
+      }
+      rec.checkedWater[nextSlot.id] = true;
+      syncFuelHabits(rec);
+      persistState();
+      renderFuelView();
+      notifyUser(`Logged ${nextSlot.ml} ml (${nextSlot.time})`, "#64D2FF");
+    }
+
+    // Background 60-second ticker to fire timely workday water reminders
+    setInterval(() => {
+      if (!state.waterAlertsEnabled) return;
+      const now = new Date();
+      const currentHourDec = now.getHours() + (now.getMinutes() / 60);
+      const rec = getTodayFuelRecord();
+      const dueSlot = WATER_SCHEDULE.find(s =>
+        !rec.checkedWater[s.id] &&
+        Math.abs(currentHourDec - s.hour24) <= 0.15
+      );
+      if (dueSlot && state.lastWaterAlertSlot !== `${todayISO()}_${dueSlot.id}`) {
+        state.lastWaterAlertSlot = `${todayISO()}_${dueSlot.id}`;
+        persistState();
+        testWaterReminderAlert();
+      }
+    }, 60000);
+
+    function changeSteps(delta) {
+      const rec = getTodayFuelRecord();
+      rec.steps = Math.max(0, rec.steps + delta);
+      rec.habits.h_steps = rec.steps >= 5500;
+      persistState();
+      renderFuelView();
+    }
+
+    function toggleHabitCheck(habitId) {
+      const rec = getTodayFuelRecord();
+      rec.habits[habitId] = !rec.habits[habitId];
+      persistState();
+      renderFuelView();
+    }
+
+    function calculateDayMacrosAndWater(rec) {
+      const dayPlan = WEEKLY_MEAL_PLAN[state.selectedWeekday] || WEEKLY_MEAL_PLAN.Mon;
+      let totalCal = 0;
+      let totalProt = 0;
+
+      dayPlan.slots.forEach(slot => {
+        if (rec.checkedSlots[slot.slotId]) {
+          const idx = rec.slotOptionIdx[slot.slotId] || 0;
+          const opt = slot.options[idx] || slot.options[0];
+          totalCal += opt.kcal;
+          totalProt += opt.prot;
+        }
+      });
+
+      (rec.extraMeals || []).forEach(m => {
+        totalCal += m.kcal;
+        totalProt += m.prot;
+      });
+
+      let totalWaterMl = 0;
+      WATER_SCHEDULE.forEach(w => {
+        if (rec.checkedWater[w.id]) totalWaterMl += w.ml;
+      });
+
+      return { totalCal, totalProt, totalWaterMl };
+    }
+
+    function syncFuelHabits(rec) {
+      const { totalCal, totalProt, totalWaterMl } = calculateDayMacrosAndWater(rec);
+      rec.habits.h_prot = totalProt >= 105;
+      rec.habits.h_cal = totalCal >= 1350 && totalCal <= 1850;
+      rec.habits.h_water = totalWaterMl >= 3200;
+    }
+
+    function renderFuelView() {
+      const rec = getTodayFuelRecord();
+      const { totalCal, totalProt, totalWaterMl } = calculateDayMacrosAndWater(rec);
+
+      // Subtab visibility
+      const isMeals = (state.fuelSubtab || "meals") === "meals";
+      document.getElementById("subtab-meals").classList.toggle("active", isMeals);
+      document.getElementById("subtab-water").classList.toggle("active", !isMeals);
+      document.getElementById("fuel-subview-meals").classList.toggle("hidden", !isMeals);
+      document.getElementById("fuel-subview-water").classList.toggle("hidden", isMeals);
+
+      // Top summary strip
+      document.getElementById("fuel-cal-val").textContent = totalCal;
+      document.getElementById("fuel-cal-bar").style.width = `${Math.min(100, (totalCal / 1650) * 100)}%`;
+
+      document.getElementById("fuel-prot-val").textContent = `${totalProt}g`;
+      document.getElementById("fuel-prot-bar").style.width = `${Math.min(100, (totalProt / 115) * 100)}%`;
+
+      document.getElementById("fuel-water-top").textContent = `${(totalWaterMl / 1000).toFixed(1)}L`;
+      document.getElementById("fuel-water-bar").style.width = `${Math.min(100, (totalWaterMl / 3500) * 100)}%`;
+
+      // 7-Day Weekday Selector Pills
+      const daysOrder = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+      document.getElementById("weekday-pills-row").innerHTML = daysOrder.map(d => {
+        const active = d === state.selectedWeekday;
+        const isWknd = d === "Sat" || d === "Sun";
+        return `
+          <button
+            onclick="selectWeekday('${d}')"
+            class="flex-1 min-w-[48px] py-2 rounded-[10px] text-center transition"
+            style="background-color: ${active ? "var(--ios-blue)" : "var(--ios-card)"}; border: 0.5px solid ${active ? "var(--ios-blue)" : "var(--ios-separator)"};"
+          >
+            <div class="text-[12px] font-semibold text-white">${d}</div>
+            <div class="text-[9px] font-medium uppercase mt-0.5" style="color: ${active ? "rgba(255,255,255,0.85)" : "var(--ios-label-secondary)"};">
+              ${isWknd ? "Home" : "Office"}
+            </div>
+          </button>
+        `;
+      }).join("");
+
+      const dayPlan = WEEKLY_MEAL_PLAN[state.selectedWeekday] || WEEKLY_MEAL_PLAN.Mon;
+      document.getElementById("meal-day-heading").textContent = dayPlan.label.toUpperCase();
+
+      // Render 5 Timed Meal Slots
+      document.getElementById("timed-meals-container").innerHTML = dayPlan.slots.map(slot => {
+        const checked = !!rec.checkedSlots[slot.slotId];
+        const optIdx = rec.slotOptionIdx[slot.slotId] || 0;
+        const activeOpt = slot.options[optIdx] || slot.options[0];
+
+        return `
+          <div class="p-3.5 flex items-start justify-between gap-3">
+            <!-- Check Circle + Content -->
+            <div class="flex items-start gap-3 min-w-0 flex-1">
+              <button
+                onclick="toggleTimedMealCheck('${slot.slotId}')"
+                class="mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0 transition active:scale-90"
+                style="border: 1.5px solid ${checked ? "var(--ios-green)" : "rgba(235, 235, 245, 0.35)"}; background-color: ${checked ? "var(--ios-green)" : "transparent"}; color: #000000;"
+              >
+                ${checked ? `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>` : ""}
+              </button>
+
+              <div class="min-w-0 flex-1" onclick="toggleTimedMealCheck('${slot.slotId}')">
+                <div class="flex items-center gap-2">
+                  <span class="text-[11px] font-semibold tabular-nums px-1.5 py-0.5 rounded ios-well" style="color: var(--ios-blue);">${slot.time}</span>
+                  <span class="text-[11px] font-medium truncate" style="color: var(--ios-label-secondary);">${slot.label}</span>
+                </div>
+                <div class="text-[15px] font-semibold mt-1 ${checked ? "line-through text-zinc-500" : "text-white"}">
+                  ${activeOpt.name}
+                </div>
+                <div class="text-[12px] mt-0.5" style="color: var(--ios-label-secondary);">
+                  ${activeOpt.sub}
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Macro Readout & 1-Tap Swap Option -->
+            <div class="text-right shrink-0 flex flex-col items-end justify-between">
+              <div class="tabular-nums">
+                <div class="text-[14px] font-bold" style="color: var(--ios-green);">${activeOpt.prot}g P</div>
+                <div class="text-[11px]" style="color: var(--ios-label-secondary);">${activeOpt.kcal} kcal</div>
+              </div>
+              ${slot.options.length > 1 ? `
+                <button
+                  onclick="cycleTimedMealOption('${slot.slotId}', ${slot.options.length})"
+                  class="mt-2 px-2 py-0.5 rounded-full ios-well text-[11px] font-medium active:opacity-70"
+                  style="color: var(--ios-blue);"
+                >
+                  Swap Option ↻
+                </button>
+              ` : ""}
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      // Extra custom logged items
+      const extraCard = document.getElementById("extra-meals-card");
+      const extraList = document.getElementById("extra-meals-list");
+      if (rec.extraMeals && rec.extraMeals.length > 0) {
+        extraCard.classList.remove("hidden");
+        extraList.innerHTML = rec.extraMeals.map(m => `
+          <button onclick="removeExtraMeal(${m.id})" class="px-2.5 py-1 rounded-full ios-well text-[12px] text-white flex items-center gap-1.5">
+            <span>${m.title}</span>
+            <span class="font-semibold" style="color: var(--ios-green);">+${m.prot}g</span>
+            <span style="color: var(--ios-label-secondary);">✕</span>
+          </button>
+        `).join("");
+      } else {
+        extraCard.classList.add("hidden");
+      }
+
+      // Render Timed Hydration View
+      const notifToggle = document.getElementById("water-notif-toggle");
+      const notifKnob = document.getElementById("water-notif-knob");
+      if (state.waterAlertsEnabled) {
+        notifToggle.style.backgroundColor = "var(--ios-green)";
+        notifKnob.classList.add("translate-x-5");
+        notifKnob.classList.remove("translate-x-0");
+      } else {
+        notifToggle.style.backgroundColor = "rgba(120, 120, 128, 0.32)";
+        notifKnob.classList.remove("translate-x-5");
+        notifKnob.classList.add("translate-x-0");
+      }
+
+      const nextSlot = getNextUnloggedWaterSlot(rec);
+      const nextTextEl = document.getElementById("next-water-slot-text");
+      const nextBtnEl = document.getElementById("log-next-water-btn");
+      if (nextSlot) {
+        nextTextEl.textContent = `${nextSlot.time} · ${nextSlot.ml} ml (${nextSlot.title})`;
+        nextBtnEl.textContent = `+${nextSlot.ml}ml`;
+      } else {
+        nextTextEl.textContent = "All 8 Hydration Checkpoints Complete (3.5L)!";
+        nextBtnEl.textContent = "Done ✓";
+      }
+
+      document.getElementById("water-slots-counter").textContent = `${totalWaterMl.toLocaleString()} / 3,500 ml`;
+
+      document.getElementById("water-schedule-list").innerHTML = WATER_SCHEDULE.map(w => {
+        const done = !!rec.checkedWater[w.id];
+        return `
+          <button onclick="toggleWaterSlot('${w.id}')" class="w-full px-4 py-3 text-left flex items-center justify-between gap-3 active:bg-white/5 transition">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-5 h-5 rounded-full flex items-center justify-center shrink-0" style="border: 1.5px solid ${done ? "var(--ios-teal)" : "rgba(235, 235, 245, 0.35)"}; background-color: ${done ? "var(--ios-teal)" : "transparent"}; color: #000000;">
+                ${done ? `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>` : ""}
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="text-[12px] font-semibold tabular-nums" style="color: var(--ios-teal);">${w.time}</span>
+                  <span class="text-[14px] font-medium ${done ? "line-through text-zinc-500" : "text-white"} truncate">${w.title}</span>
+                </div>
+                <div class="text-[12px] truncate" style="color: var(--ios-label-secondary);">${w.sub}</div>
+              </div>
+            </div>
+            <span class="text-[14px] font-semibold tabular-nums shrink-0" style="color: ${done ? "var(--ios-teal)" : "var(--ios-label-secondary)"};">
+              +${w.ml} ml
+            </span>
+          </button>
+        `;
+      }).join("");
+
+      document.getElementById("steps-val").textContent = rec.steps.toLocaleString();
+
+      let doneHabits = 0;
+      document.getElementById("reminders-list").innerHTML = DAILY_HABITS.map(h => {
+        const checked = !!rec.habits[h.id];
+        if (checked) doneHabits++;
+        return `
+          <button onclick="toggleHabitCheck('${h.id}')" class="w-full px-4 py-3 text-left flex items-center gap-3.5 active:bg-white/5 transition">
+            <div class="w-5 h-5 rounded-full flex items-center justify-center shrink-0" style="border: 1.5px solid ${checked ? "var(--ios-green)" : "rgba(235, 235, 245, 0.35)"}; background-color: ${checked ? "var(--ios-green)" : "transparent"}; color: #000000;">
+              ${checked ? `<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>` : ""}
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="text-[14px] font-medium ${checked ? "line-through text-zinc-500" : "text-white"}">${h.title}</div>
+              <div class="text-[12px]" style="color: var(--ios-label-secondary);">${h.sub}</div>
+            </div>
+          </button>
+        `;
+      }).join("");
+
+      document.getElementById("habit-score-label").textContent = `${doneHabits} of ${DAILY_HABITS.length}`;
+    }
+
+    /* =========================================================================
+       10. TAB 3: AI PERFORMANCE COACH, MASTERY AUDIT & BODY WEIGHT
+    ========================================================================= */
+    async function askAICoach(mode) {
+      const box = document.getElementById("ai-coach-response");
+      const inputEl = document.getElementById("ai-coach-input");
+      const split = WORKOUT_SPLITS[state.activeDay];
+
+      // Gather live context from state
+      const summaryLines = split.slots.map(slot => {
+        const opt = getActiveOption(slot);
+        const rec = getExerciseRecord(slot, opt);
+        const m = computeMasteryMetrics(slot, opt, rec);
+        return `${opt.name} (Tier ${opt.tier}): ${m.currentKg}/${opt.masteryKg}kg, ${m.pct}% Mastery`;
+      }).join("; ");
+
+      let userPrompt = "";
+      if (mode === "audit") {
+        userPrompt = `Audit my current Day ${state.activeDay} (${split.name}) progress: ${summaryLines}. Tell me which exercise is closest to Tier 2 Mastery and how to approach my next session safely.`;
+      } else if (mode === "office") {
+        userPrompt = `Give me a concise 3-bullet strategy for hitting 115g protein and 3.5L water on busy office days using protein bars, eggs/chicken tiffin, and Amul protein buttermilk.`;
+      } else if (mode === "joints") {
+        userPrompt = `I am returning to the gym after 3-4 years. Explain how my 3-Gate Mastery rule (Target Weight + Max Reps + Good Form twice) protects my tendons before moving to Tier 2 and Tier 3 exercises.`;
+      } else {
+        userPrompt = inputEl.value.trim();
+        if (!userPrompt) return;
+        inputEl.value = "";
+      }
+
+      box.innerHTML = `<span style="color: var(--ios-blue);">Analyzing your logged weights & mastery gates...</span>`;
+
+      // Try Gemini API first with deterministic fallback
+      try {
+        const apiKey = "";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+        const systemPrompt = "You are a concise, elite Apple Fitness+ strength & nutrition coach. Keep responses under 75 words, practical, encouraging, and specific to the user's logged weights, 3-Gate Mastery system, and Indian office nutrition.";
+
+        const res = await fetch(apiUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: userPrompt }] }],
+            systemInstruction: { parts: [{ text: systemPrompt }] }
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (reply) {
+            box.textContent = reply;
+            return;
+          }
+        }
+      } catch (e) {
+        // Fallback to deterministic local coach below
+      }
+
+      // Instant Deterministic Coach Response
+      if (mode === "audit") {
+        box.innerHTML = `<strong class="text-white">Mastery Audit (${split.name}):</strong> You are building foundation tendon integrity. Keep adding <strong class="text-white">+1.25 kg to +2.5 kg</strong> whenever you hit the top rep range across all sets with <strong class="text-white">Good Form</strong>. Once your working weight reaches the Mastery Goal on the progress bar twice in a row, tap the green <strong class="text-white">Upgrade ↑</strong> banner to graduate to Tier 2.`;
+      } else if (mode === "office") {
+        box.innerHTML = `<strong class="text-white">Office High-Protein Blueprint:</strong><br>• <strong class="text-white">11:30 AM Desk Anchor:</strong> Keep 20g Protein Bars in your desk drawer so meetings never derail your macros.<br>• <strong class="text-white">01:30 PM Tiffin:</strong> 150g Chicken Breast or 120g Low-Fat Paneer + curd delivers ~35–42g protein.<br>• <strong class="text-white">04:30 PM Hydration:</strong> Drink your 450ml water + 5g creatine before leaving the office.`;
+      } else {
+        box.innerHTML = `<strong class="text-white">Tendon-Safe Progression:</strong> Muscle fibers adapt in 2–3 weeks, while tendons take 6–8 weeks after a 3–4 year layoff. Our 3-Gate Mastery Engine ensures you never jump to heavy barbells or weighted calisthenics until you own the Foundation load at the top rep range with zero joint grind.`;
+      }
+    }
+
+    function addWeightEntry() {
+      const input = document.getElementById("weight-log-input");
+      const val = parseFloat(input.value);
+      if (isNaN(val) || val < 35 || val > 220) {
+        notifyUser("Enter a valid weight in kg", "#FF453A");
+        return;
+      }
+      const d = todayISO();
+      const idx = state.weightLog.findIndex(w => w.date === d);
+      if (idx >= 0) state.weightLog[idx].kg = val;
+      else state.weightLog.push({ date: d, kg: val });
+
+      state.weightLog.sort((a, b) => a.date.localeCompare(b.date));
+      input.value = "";
+      persistState();
+      renderProgressView();
+      notifyUser(`Logged ${val} kg`);
+    }
+
+    function renderProgressView() {
+      const split = WORKOUT_SPLITS[state.activeDay];
+      document.getElementById("audit-day-indicator").textContent = split.name;
+
+      document.getElementById("progression-audit-list").innerHTML = split.slots.map(slot => {
+        const opt = getActiveOption(slot);
+        const rec = getExerciseRecord(slot, opt);
+        const m = computeMasteryMetrics(slot, opt, rec);
+
+        return `
+          <div class="px-4 py-3 flex items-center justify-between gap-2">
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <span class="text-[11px] font-semibold" style="color: var(--ios-blue);">T${opt.tier || 1}</span>
+                <span class="text-[14px] font-medium text-white truncate">${opt.name}</span>
+              </div>
+              <div class="text-[12px] mt-0.5 tabular-nums" style="color: var(--ios-label-secondary);">
+                Current: <span class="text-white">${m.currentKg} kg</span> → Mastery: <span class="text-white">${opt.masteryKg} kg</span>
+              </div>
+            </div>
+            <div class="text-right shrink-0 tabular-nums">
+              <div class="text-[13px] font-semibold" style="color: ${m.readyToGraduate ? "var(--ios-green)" : "var(--ios-blue)"};">
+                ${m.readyToGraduate ? "Ready for Tier " + ((opt.tier || 1) + 1) : m.pct + "% Mastery"}
+              </div>
+              <div class="text-[11px]" style="color: var(--ios-label-secondary);">
+                ${m.gate1Load && m.gate2Reps ? "Verify 1 more session" : `Hit ${opt.masteryKg}kg × ${slot.maxReps}r`}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      // Weight Sparkline & History
+      const history = state.weightLog;
+      const pill = document.getElementById("weight-change-pill");
+      const sparkBox = document.getElementById("weight-sparkline-box");
+      const listEl = document.getElementById("weight-entries-list");
+
+      if (history.length > 0) {
+        const delta = (history[history.length - 1].kg - history[0].kg).toFixed(1);
+        pill.textContent = `${delta > 0 ? "+" : ""}${delta} kg`;
+        pill.style.color = delta <= 0 ? "var(--ios-green)" : "var(--ios-orange)";
+
+        if (history.length >= 2) {
+          const vals = history.map(h => h.kg);
+          const minV = Math.min(...vals) - 0.4;
+          const maxV = Math.max(...vals) + 0.4;
+          const span = Math.max(1, maxV - minV);
+          const w = 320, h = 84, padX = 14, padY = 12;
+
+          const pts = history.map((item, i) => ({
+            x: padX + (i / (history.length - 1)) * (w - padX * 2),
+            y: h - padY - ((item.kg - minV) / span) * (h - padY * 2)
+          }));
+
+          sparkBox.innerHTML = `
+            <svg viewBox="0 0 ${w} ${h}" class="w-full h-full overflow-visible">
+              <polyline fill="none" stroke="#0A84FF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" points="${pts.map(p => `${p.x},${p.y}`).join(" ")}" />
+              ${pts.map(p => `<circle cx="${p.x}" cy="${p.y}" r="4" fill="#0A84FF" stroke="#1C1C1E" stroke-width="2" />`).join("")}
+            </svg>
+          `;
+        } else {
+          sparkBox.innerHTML = `<span class="text-[13px]" style="color: var(--ios-label-secondary);">Starting weight: ${history[0].kg} kg</span>`;
+        }
+
+        listEl.innerHTML = [...history].reverse().map(entry => `
+          <div class="py-2 flex items-center justify-between text-[14px] tabular-nums">
+            <span style="color: var(--ios-label-secondary);">${entry.date}</span>
+            <span class="font-semibold text-white">${entry.kg.toFixed(1)} kg</span>
+          </div>
+        `).join("");
+      }
+    }
+
+    function copyBackupJSON() {
+      try {
+        const area = document.getElementById("clipboard-area");
+        area.value = JSON.stringify(state, null, 2);
+        area.select();
+        document.execCommand("copy");
+        notifyUser("Backup JSON copied to clipboard", "#0A84FF");
+      } catch (e) {
+        notifyUser("Could not copy backup", "#FF453A");
+      }
+    }
+
+    let confirmReset = false;
+    function resetToSafeDefaults() {
+      const btn = document.getElementById("reset-btn");
+      if (!confirmReset) {
+        confirmReset = true;
+        btn.querySelector("span").textContent = "Tap Again to Confirm Full Reset";
+        setTimeout(() => {
+          confirmReset = false;
+          btn.querySelector("span").textContent = "Reset All Weights to Beginner Safe Defaults";
+        }, 3000);
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+        state = buildInitialState();
+        persistState();
+        confirmReset = false;
+        switchView("workouts");
+        notifyUser("Reset to tendon-safe beginner weights", "#30D158");
+      }
+    }
+
+    window.onload = function () {
+      switchView(state.currentView || "workouts");
+    };
+  </script>
+</body>
+</html>

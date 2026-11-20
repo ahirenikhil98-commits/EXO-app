@@ -1,4 +1,4 @@
-const CACHE_NAME = 'exo-tracker-v9';
+const CACHE_NAME = 'exo-tracker-v10';
 const ASSETS = [
   './',
   './index.html',
@@ -13,7 +13,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Delete ALL older caches so stale index.html files are never served again
+// Delete ALL older caches so stale index.html files are never served
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -26,15 +26,18 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Network-First with Offline Cache Fallback:
-// Always gets the newest GitHub update when online; works offline in the gym
+// Network-First bypassing GitHub Pages' 10-min HTTP cache; works offline in the gym
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
+  const isSameOrigin = new URL(event.request.url).origin === self.location.origin;
+  const networkReq = isSameOrigin
+    ? new Request(event.request, { cache: 'no-cache' })
+    : event.request;
+
   event.respondWith(
-    fetch(event.request)
+    fetch(networkReq)
       .then((networkResponse) => {
-        // Save fresh copy to cache in the background
         if (networkResponse && networkResponse.status === 200) {
           const copy = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));

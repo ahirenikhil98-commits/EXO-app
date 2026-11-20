@@ -1,4 +1,4 @@
-const CACHE_NAME = 'exo-tracker-v3';
+const CACHE_NAME = 'exo-tracker-v8';
 const ASSETS = [
   './',
   './index.html',

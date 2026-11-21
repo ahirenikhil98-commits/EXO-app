@@ -9,6 +9,7 @@
   <meta name="theme-color" content="#07080C" />
   <title>EXO — Performance &amp; Fuel System</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>
   <link rel="preconnect" href="https://fonts.cdnfonts.com" />
   <link href="https://fonts.cdnfonts.com/css/aileron" rel="stylesheet" />
   <style>
@@ -240,6 +241,29 @@
       pointer-events: none;
       z-index: 999;
       animation: sparkFly 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* 2-Frame Animated Exercise Visuals (Free Exercise DB) */
+    .exo-demo-box {
+      position: relative;
+      overflow: hidden;
+      background: #0F121A;
+    }
+    .exo-demo-box img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: opacity 0.35s ease;
+    }
+    @keyframes exoFrameFlip {
+      0%, 46% { opacity: 1; }
+      50%, 96% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+    .exo-demo-f1 {
+      animation: exoFrameFlip 2.6s infinite ease-in-out;
     }
 
     /* Remove spinner arrows on number inputs */
@@ -519,13 +543,14 @@
             </div>
           </div>
 
-          <!-- Timely Alerts Toggle -->
-          <div class="pt-3 exo-hairline-t flex items-center justify-between gap-3">
-            <div>
+          <!-- Timely Alerts & Heat Sync Toggle -->
+          <div class="pt-3 exo-hairline-t flex items-center justify-between gap-2">
+            <div class="min-w-0">
               <div class="text-[13px] font-semibold text-white">Timed Water Alerts</div>
-              <div id="notif-status-sub" class="text-[11px]" style="color: var(--exo-text-secondary);">Scheduled workday reminders</div>
+              <div id="notif-status-sub" class="text-[11px] truncate" style="color: var(--exo-text-secondary);">Scheduled workday reminders</div>
             </div>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button onclick="syncLocalHeatHydration()" class="h-8 px-2.5 rounded-lg exo-well text-[11px] font-bold text-cyan-300 active:opacity-75">☀️ <span id="heat-sync-label">Heat Sync</span></button>
               <button onclick="testWaterReminder()" class="h-8 px-2.5 rounded-lg exo-well text-[11px] font-medium text-zinc-300 active:opacity-75">Test</button>
               <button id="water-notif-toggle" onclick="toggleWaterNotifications()" role="switch" aria-checked="false" class="w-12 h-7 rounded-full p-0.5 transition-colors duration-200 flex items-center bg-zinc-700">
                 <span id="water-notif-knob" class="w-6 h-6 rounded-full bg-white shadow transform transition-transform duration-200 translate-x-0"></span>
@@ -841,12 +866,75 @@
        1. CONSTANTS, MUSCLE THEMES, EXERCISE LIBRARY & PREMADE SPLITS
        ========================================================================== */
     const STORAGE_KEY = "exo_perf_fuel_state_v4";
+    const ONBOARD_LOCK_KEY = "exo_onboarded_lock_v1";
     const LEGACY_KEYS = [
       "exo_perf_fuel_state_v3",
       "exo_perf_fuel_state_v2",
       "exo_perf_fuel_state_v1",
       "hybrid_fit_tracker_state_v1"
     ];
+
+    const FREE_EX_DB_URL = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/dist/exercises.json";
+    const FREE_EX_DB_FALLBACK_URL = "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/dist/exercises.json";
+    const FREE_EX_IMG_BASE = "https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises/";
+    const FREE_EX_IMG_FALLBACK = "https://cdn.jsdelivr.net/gh/yuhonas/free-exercise-db@main/exercises/";
+
+    let freeExerciseCatalog = [];
+    let freeExerciseMapById = {};
+    let freeExerciseLoaded = false;
+
+    const EX_DB_VISUAL_MAP = {
+      "incline dumbbell press": "Incline_Dumbbell_Press",
+      "flat dumbbell bench press": "Dumbbell_Bench_Press",
+      "barbell incline bench press": "Barbell_Incline_Bench_Press_-_Medium_Grip",
+      "barbell bench press": "Barbell_Bench_Press_-_Medium_Grip",
+      "machine chest press": "Machine_Bench_Press",
+      "seated machine chest press": "Machine_Bench_Press",
+      "pec deck / cable fly": "Butterfly",
+      "weighted / deficit push-ups": "Pushups",
+      "controlled push-ups": "Pushups",
+      "seated db shoulder press": "Dumbbell_Shoulder_Press",
+      "seated dumbbell shoulder press": "Dumbbell_Shoulder_Press",
+      "arnold dumbbell press": "Arnold_Dumbbell_Press",
+      "dumbbell lateral raises": "Side_Lateral_Raise",
+      "cable lateral raises": "Cable_Seated_Lateral_Raise",
+      "reverse pec deck (rear delts)": "Reverse_Machine_Flyes",
+      "reverse pec deck": "Reverse_Machine_Flyes",
+      "rope tricep pushdown": "Triceps_Pushdown_-_Rope_Attachment",
+      "overhead cable tricep ext.": "Cable_Lying_Triceps_Extension",
+      "overhead cable tricep extension": "Cable_Lying_Triceps_Extension",
+      "forearm plank": "Plank",
+      "hollow body hold": "Plank",
+      "lat pulldown (neutral grip)": "Wide-Grip_Lat_Pulldown",
+      "lat pulldown (wide / neutral)": "Wide-Grip_Lat_Pulldown",
+      "assisted / bodyweight pull-ups": "Pullups",
+      "seated cable row": "Seated_Cable_Rows",
+      "chest-supported machine row": "T-Bar_Row_with_Handle",
+      "single-arm dumbbell row": "One-Arm_Dumbbell_Row",
+      "cable face pulls": "Face_Pull",
+      "dumbbell hammer curls": "Hammer_Curls",
+      "hammer curls": "Hammer_Curls",
+      "incline dumbbell curl": "Incline_Dumbbell_Curl",
+      "dumbbell bicep curl": "Dumbbell_Bicep_Curl",
+      "ez-bar preacher curl": "EZ-Bar_Curl",
+      "goblet squat": "Goblet_Squat",
+      "45° leg press": "Leg_Press",
+      "barbell back squat": "Barbell_Squat",
+      "dumbbell romanian deadlift": "Romanian_Deadlift_with_Dumbbells",
+      "barbell romanian deadlift": "Romanian_Deadlift",
+      "seated leg curl": "Seated_Leg_Curl",
+      "seated / lying leg curl": "Seated_Leg_Curl",
+      "leg extension": "Leg_Extensions",
+      "bulgarian split squat": "Single_Leg_Push-off",
+      "standing calf raise": "Standing_Calf_Raises",
+      "standing / seated calf raise": "Standing_Calf_Raises",
+      "kettlebell swings": "One-Arm_Kettlebell_Swings",
+      "dumbbell farmer's carry": "Farmers_Walk",
+      "parallel bar dips": "Dips_-_Triceps_Version",
+      "assisted / parallel bar dips": "Dips_-_Triceps_Version",
+      "kneeling cable crunch": "Cable_Crunch",
+      "hanging / captain chair leg raise": "Hanging_Leg_Raise"
+    };
 
     const MUSCLE_THEMES = {
       Chest:     { color: "#D4FF00", bg: "rgba(212,255,0,0.14)",  icon: "press" },
@@ -1177,7 +1265,8 @@
 
       const proMult = prof.goal === "fat_loss" ? 1.85 : 1.7;
       const targetProtein = Math.max(85, Math.min(220, Math.round(w * proMult)));
-      const targetWaterMl = Math.max(2500, Math.min(5000, Math.round((w * 42) / 250) * 250));
+      const baseWater = Math.max(2500, Math.min(5000, Math.round((w * 42) / 250) * 250));
+      const targetWaterMl = baseWater + (prof.heatBonusMl || 0);
       return { targetKcal, targetProtein, targetWaterMl };
     }
 
@@ -1219,6 +1308,7 @@
     function createSlotFromLibraryItem(item, prefix) {
       const uid = `${prefix}_${item.id}_${Math.random().toString(36).slice(2, 6)}`;
       const unitTxt = item.metricType === "time" ? "s hold" : item.metricType === "distance" ? "m walk" : " reps";
+      const mappedDbId = item.dbId || EX_DB_VISUAL_MAP[(item.name || "").toLowerCase().trim()] || "";
       return {
         slotId: uid,
         muscle: item.muscle,
@@ -1231,6 +1321,7 @@
         masteryKg: (item.startKg || 10) * 1.8,
         options: [{
           id: `${uid}_opt`,
+          dbId: mappedDbId,
           tier: 1,
           name: item.name,
           startKg: item.startKg || 0,
@@ -1250,6 +1341,8 @@
         level: "beginner",
         diet: "nonveg",
         programType: "premade",
+        heatBonusMl: 0,
+        weatherTempC: null,
         onboarded: false
       };
       const t = calculatePersonalizedTargets(defaultProf);
@@ -1264,6 +1357,7 @@
         waterNotifEnabled: false,
         sessionsCompleted: 0,
         profile: defaultProf,
+        premadeSplits: JSON.parse(JSON.stringify(PREMADE_SPLITS)),
         customSplits: buildDefaultCustomSplits(),
         activeOptions: {},
         exerciseRecords: {},
@@ -1290,6 +1384,9 @@
         const parsed = JSON.parse(raw);
         const merged = Object.assign(base, parsed);
         merged.profile = Object.assign(base.profile, parsed.profile || {});
+        if (!merged.premadeSplits || Object.keys(merged.premadeSplits).length === 0) {
+          merged.premadeSplits = JSON.parse(JSON.stringify(PREMADE_SPLITS));
+        }
         if (!merged.customSplits || Object.keys(merged.customSplits).length === 0) {
           merged.customSplits = buildDefaultCustomSplits();
         }
@@ -1297,6 +1394,20 @@
         if (!merged.sessionHistory) merged.sessionHistory = [];
         if (!merged.exerciseRecords) merged.exerciseRecords = {};
         if (!merged.activeOptions) merged.activeOptions = {};
+
+        // Persistent onboarding lock so live users never randomly get sent back to onboarding
+        const hasActivity = merged.profile.onboarded === true ||
+          localStorage.getItem(ONBOARD_LOCK_KEY) === "1" ||
+          (merged.sessionsCompleted || 0) > 0 ||
+          (merged.sessionHistory && merged.sessionHistory.length > 0) ||
+          Boolean((merged.profile.name || "").trim()) ||
+          Object.values(merged.exerciseRecords).some(r => r && Array.isArray(r.sets) && r.sets.some(s => s.done));
+
+        if (hasActivity) {
+          merged.profile.onboarded = true;
+          localStorage.setItem(ONBOARD_LOCK_KEY, "1");
+        }
+
         localStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
         return merged;
       } catch (e) {
@@ -1308,12 +1419,19 @@
 
     function persistState() {
       try {
+        if (state.profile && state.profile.onboarded) {
+          localStorage.setItem(ONBOARD_LOCK_KEY, "1");
+        }
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       } catch (e) {}
     }
 
     function getActiveSplits() {
-      return state.profile.programType === "custom" ? state.customSplits : PREMADE_SPLITS;
+      if (state.profile.programType === "custom") return state.customSplits;
+      if (!state.premadeSplits) {
+        state.premadeSplits = JSON.parse(JSON.stringify(PREMADE_SPLITS));
+      }
+      return state.premadeSplits;
     }
 
     function getActiveOption(slot) {
@@ -1427,6 +1545,7 @@
     }
 
     function closeBottomSheet() {
+      stopBarcodeScanner();
       document.getElementById("exo-sheet-backdrop").classList.remove("active");
     }
 
@@ -1470,8 +1589,88 @@
     }
 
     /* ==========================================================================
-       5. WORKOUTS VIEW, DUOTONE MEDALLIONS, INTELLIGENT CAPABILITY & SET LOGIC
+       5. WORKOUTS VIEW, FREE EXERCISE DB VISUALS, SEQUENCE ARROWS & SET LOGIC
        ========================================================================== */
+    function mapFreeExMuscleToGroup(primaryArr) {
+      const m = Array.isArray(primaryArr) && primaryArr[0] ? primaryArr[0].toLowerCase() : "";
+      if (m.includes("chest")) return "Chest";
+      if (m.includes("lat") || m.includes("back") || m.includes("trap")) return "Back";
+      if (m.includes("shoulder") || m.includes("neck")) return "Shoulders";
+      if (m.includes("bicep") || m.includes("tricep") || m.includes("forearm")) return "Arms";
+      if (m.includes("abdom") || m.includes("lower back")) return "Core";
+      return "Legs";
+    }
+
+    async function fetchFreeExerciseDB() {
+      if (freeExerciseLoaded) return;
+      for (const endpoint of [FREE_EX_DB_URL, FREE_EX_DB_FALLBACK_URL]) {
+        try {
+          const res = await fetch(endpoint);
+          if (!res.ok) continue;
+          const data = await res.json();
+          if (!Array.isArray(data) || data.length === 0) continue;
+          freeExerciseCatalog = data.map(ex => {
+            const muscle = mapFreeExMuscleToGroup(ex.primaryMuscles);
+            const equip = ex.equipment ? (ex.equipment.charAt(0).toUpperCase() + ex.equipment.slice(1)) : "Bodyweight";
+            const isTimed = (ex.name || "").toLowerCase().includes("plank") || (ex.name || "").toLowerCase().includes("hold");
+            const isBW = equip.toLowerCase() === "body only" || equip.toLowerCase() === "bodyweight";
+            const imgs = Array.isArray(ex.images) && ex.images.length > 0 ? ex.images : [`${ex.id}/0.jpg`, `${ex.id}/1.jpg`];
+            const item = {
+              id: `fdb_${ex.id}`,
+              dbId: ex.id,
+              name: ex.name,
+              muscle,
+              equip: isBW ? "Bodyweight" : equip,
+              sets: 3,
+              minReps: isTimed ? 30 : 8,
+              maxReps: isTimed ? 45 : 12,
+              startKg: isBW || isTimed ? 0 : 10,
+              stepKg: isTimed ? 0 : 2.5,
+              metricType: isTimed ? "time" : "reps",
+              images: imgs,
+              instructions: ex.instructions || []
+            };
+            freeExerciseMapById[ex.id] = item;
+            return item;
+          });
+          freeExerciseLoaded = true;
+          if (state.currentView === "workouts") renderWorkoutsView();
+          if (document.getElementById("exo-lib-results")) updateExerciseLibraryResults();
+          if (document.getElementById("ob-lib-list")) {
+            document.getElementById("ob-lib-list").innerHTML = buildObLibraryRowsHtml();
+          }
+          return;
+        } catch (e) {}
+      }
+    }
+
+    function getMergedExercisePool() {
+      const seen = new Set();
+      const merged = [];
+      const add = (ex) => {
+        const key = (ex.name || "").toLowerCase().trim();
+        if (!key || seen.has(key)) return;
+        seen.add(key);
+        if (!ex.images || ex.images.length === 0) {
+          const mappedId = ex.dbId || EX_DB_VISUAL_MAP[key];
+          if (mappedId) ex = { ...ex, dbId: mappedId, images: [`${mappedId}/0.jpg`, `${mappedId}/1.jpg`] };
+        }
+        merged.push(ex);
+      };
+      freeExerciseCatalog.forEach(add);
+      EXERCISE_LIBRARY.forEach(add);
+      return merged;
+    }
+
+    function findFreeExerciseMatch(opt) {
+      if (!opt) return null;
+      const key = (opt.name || "").toLowerCase().trim();
+      const dbId = opt.dbId || EX_DB_VISUAL_MAP[key];
+      if (dbId && freeExerciseMapById[dbId]) return freeExerciseMapById[dbId];
+      if (dbId) return { dbId, images: [`${dbId}/0.jpg`, `${dbId}/1.jpg`], instructions: [] };
+      return freeExerciseCatalog.find(x => x.name.toLowerCase() === key) || null;
+    }
+
     function renderMedallionSvg(muscle) {
       const t = MUSCLE_THEMES[muscle] || MUSCLE_THEMES.Core;
       const icons = {
@@ -1485,6 +1684,21 @@
       return `
         <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: ${t.bg}; color: ${t.color}; border: 1px solid ${t.color}33;">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24">${icons[t.icon] || icons.core}</svg>
+        </div>
+      `;
+    }
+
+    function renderExerciseVisual(muscle, opt) {
+      const fallback = renderMedallionSvg(muscle);
+      const match = findFreeExerciseMatch(opt);
+      if (!match || !match.images || match.images.length === 0) return fallback;
+      const p0 = match.images[0];
+      const p1 = match.images[1] || match.images[0];
+      return `
+        <div class="exo-demo-box w-11 h-11 rounded-xl shrink-0 border border-white/15">
+          <div class="absolute inset-0 flex items-center justify-center opacity-70">${fallback}</div>
+          <img src="${FREE_EX_IMG_BASE}${p0}" alt="${opt.name}" loading="lazy" class="exo-demo-f0" onerror="if(!this.dataset.retried){this.dataset.retried='1';this.src='${FREE_EX_IMG_FALLBACK}${p0}';}else{this.style.display='none';}" />
+          <img src="${FREE_EX_IMG_BASE}${p1}" alt="${opt.name}" loading="lazy" class="exo-demo-f1" onerror="if(!this.dataset.retried){this.dataset.retried='1';this.src='${FREE_EX_IMG_FALLBACK}${p1}';}else{this.style.display='none';}" />
         </div>
       `;
     }
@@ -1552,7 +1766,7 @@
       let doneSets = 0;
       let liveVolKg = 0;
 
-      const cardsHtml = split.slots.map(slot => {
+      const cardsHtml = split.slots.map((slot, slotIdx) => {
         const opt = getActiveOption(slot);
         const rec = getExerciseRecord(slot, opt);
         totalSets += rec.sets.length;
@@ -1614,13 +1828,14 @@
         return `
           <article class="exo-card p-4 space-y-3">
             <!-- Card Header -->
-            <div class="flex items-start justify-between gap-2.5">
+            <div class="flex items-start justify-between gap-2">
               <div class="flex items-center gap-3 min-w-0">
                 <button onclick="openExerciseAnalyticsSheet('${slot.slotId}')" class="active:scale-95 transition">
-                  ${renderMedallionSvg(slot.muscle)}
+                  ${renderExerciseVisual(slot.muscle, opt)}
                 </button>
                 <div class="min-w-0">
                   <div class="flex items-center gap-1.5">
+                    <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-white/10 text-zinc-300 tabular-nums">#${slotIdx + 1}</span>
                     <h3 onclick="openExerciseAnalyticsSheet('${slot.slotId}')" class="font-brand text-[15px] font-extrabold text-white truncate cursor-pointer">${opt.name}</h3>
                     ${hasLivePR ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold text-black shrink-0" style="background-color: var(--exo-volt);">★ PR</span>` : ""}
                   </div>
@@ -1630,7 +1845,11 @@
                   ${rec.note ? `<div class="text-[11px] text-zinc-400 truncate mt-0.5">📌 ${rec.note}</div>` : ""}
                 </div>
               </div>
-              <button onclick="openExerciseMenuSheet('${slot.slotId}')" class="w-9 h-9 rounded-xl exo-well flex items-center justify-center text-zinc-300 font-bold tracking-widest shrink-0 active:scale-90 transition">•••</button>
+              <div class="flex items-center gap-1 shrink-0">
+                <button onclick="moveExerciseInDay('${slot.slotId}', -1)" ${slotIdx === 0 ? "disabled" : ""} aria-label="Move exercise up" class="w-8 h-9 rounded-xl exo-well flex items-center justify-center text-[12px] font-extrabold transition ${slotIdx === 0 ? "opacity-25 pointer-events-none" : "text-zinc-300 active:scale-90"}">↑</button>
+                <button onclick="moveExerciseInDay('${slot.slotId}', 1)" ${slotIdx === split.slots.length - 1 ? "disabled" : ""} aria-label="Move exercise down" class="w-8 h-9 rounded-xl exo-well flex items-center justify-center text-[12px] font-extrabold transition ${slotIdx === split.slots.length - 1 ? "opacity-25 pointer-events-none" : "text-zinc-300 active:scale-90"}">↓</button>
+                <button onclick="openExerciseMenuSheet('${slot.slotId}')" class="w-9 h-9 rounded-xl exo-well flex items-center justify-center text-zinc-300 font-bold tracking-widest shrink-0 active:scale-90 transition">•••</button>
+              </div>
             </div>
 
             <!-- 5-Column Set Table -->
@@ -1764,6 +1983,20 @@
       notifyUser("Exercise swapped");
     }
 
+    function moveExerciseInDay(slotId, direction) {
+      const splits = getActiveSplits();
+      const split = splits[state.activeSplitDay];
+      if (!split) return;
+      const idx = split.slots.findIndex(s => s.slotId === slotId);
+      const targetIdx = idx + direction;
+      if (idx === -1 || targetIdx < 0 || targetIdx >= split.slots.length) return;
+      const [moved] = split.slots.splice(idx, 1);
+      split.slots.splice(targetIdx, 0, moved);
+      persistState();
+      renderWorkoutsView();
+      notifyUser(`Moved to #${targetIdx + 1} in sequence`, "#00D8FF");
+    }
+
     function removeExerciseFromDay(slotId) {
       const splits = getActiveSplits();
       const split = splits[state.activeSplitDay];
@@ -1805,6 +2038,11 @@
           <button onclick="insertWarmupSet('${slot.slotId}')" class="h-11 rounded-xl exo-well font-brand text-[12px] font-bold" style="color: var(--exo-amber);">+ 50% Warm-Up</button>
         </div>
 
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="moveExerciseInDay('${slot.slotId}', -1); closeBottomSheet();" class="h-10 rounded-xl exo-well font-brand text-[12px] font-bold text-zinc-200 active:scale-95 transition">↑ Move Earlier</button>
+          <button onclick="moveExerciseInDay('${slot.slotId}', 1); closeBottomSheet();" class="h-10 rounded-xl exo-well font-brand text-[12px] font-bold text-zinc-200 active:scale-95 transition">↓ Move Later</button>
+        </div>
+
         <div class="space-y-1.5">
           <label class="text-[10px] font-bold uppercase tracking-widest block" style="color: var(--exo-text-secondary);">Pinned Machine / Setup Cue</label>
           <div class="flex gap-2">
@@ -1829,10 +2067,25 @@
       const opt = getActiveOption(slot);
       const rec = getExerciseRecord(slot, opt);
       const hist = rec.history || [];
+      const dbMatch = findFreeExerciseMatch(opt);
 
       const working = rec.sets.filter(s => s.type !== "warmup");
       const ref = working[0] || rec.sets[0];
       const cur1RM = calcEpley1RM(ref.kg, ref.reps);
+
+      const p0 = dbMatch && dbMatch.images && dbMatch.images[0] ? dbMatch.images[0] : "";
+      const p1 = dbMatch && dbMatch.images && dbMatch.images[1] ? dbMatch.images[1] : p0;
+      const demoHtml = p0 ? `
+        <div class="relative rounded-2xl overflow-hidden border border-white/12">
+          <div class="exo-demo-box w-full h-44">
+            <img src="${FREE_EX_IMG_BASE}${p0}" alt="${opt.name} start" class="exo-demo-f0" onerror="if(!this.dataset.retried){this.dataset.retried='1';this.src='${FREE_EX_IMG_FALLBACK}${p0}';}else{this.style.display='none';}" />
+            <img src="${FREE_EX_IMG_BASE}${p1}" alt="${opt.name} end" class="exo-demo-f1" onerror="if(!this.dataset.retried){this.dataset.retried='1';this.src='${FREE_EX_IMG_FALLBACK}${p1}';}else{this.style.display='none';}" />
+          </div>
+          <span class="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded-full text-[9px] font-extrabold uppercase tracking-widest bg-black/75 text-white border border-white/15 backdrop-blur">
+            ● Live 2-Frame Demo
+          </span>
+        </div>
+      ` : "";
 
       let chartHtml = `<div class="h-28 exo-well flex items-center justify-center text-[12px]" style="color: var(--exo-text-secondary);">Finish 2+ sessions to plot progression curve</div>`;
       if (hist.length >= 2) {
@@ -1855,6 +2108,7 @@
       }
 
       const html = `
+        ${demoHtml}
         <div class="grid grid-cols-3 gap-2 text-center tabular-nums">
           <div class="exo-well p-3 rounded-xl">
             <div class="text-[9px] font-bold uppercase tracking-wider" style="color: var(--exo-text-secondary);">Est. 1RM</div>
@@ -1875,9 +2129,12 @@
           ${chartHtml}
         </div>
 
-        <div class="exo-well p-3.5 rounded-xl space-y-1">
+        <div class="exo-well p-3.5 rounded-xl space-y-1.5">
           <div class="text-[10px] font-bold uppercase tracking-widest" style="color: var(--exo-volt);">Form Cue</div>
           <p class="text-[12px] text-zinc-300 leading-relaxed">${opt.note || "Controlled 2s eccentric, strong brace, full range of motion."}</p>
+          ${dbMatch && Array.isArray(dbMatch.instructions) && dbMatch.instructions.length > 0 ? dbMatch.instructions.slice(0, 3).map((st, idx) => `
+            <p class="text-[11px] text-zinc-400 leading-relaxed"><strong class="text-zinc-200">${idx + 1}.</strong> ${st}</p>
+          `).join("") : ""}
         </div>
       `;
       openBottomSheet(opt.name, `Pro Lift Analytics · ${slot.muscle}`, html);
@@ -2054,7 +2311,7 @@
     }
 
     /* ==========================================================================
-       7. CATEGORIZED EXERCISE LIBRARY SHEET (WORKOUT TAB)
+       7. CATEGORIZED EXERCISE LIBRARY SHEET (GLITCH-FREE SEARCH + 800+ DB)
        ========================================================================== */
     let activeLibCat = "All";
     let activeLibQuery = "";
@@ -2062,43 +2319,113 @@
     function openExerciseLibrarySheet() {
       activeLibCat = "All";
       activeLibQuery = "";
-      renderExerciseLibrarySheet();
-    }
-
-    function renderExerciseLibrarySheet() {
-      const filtered = EXERCISE_LIBRARY.filter(ex => {
-        const matchCat = activeLibCat === "All" || ex.muscle === activeLibCat;
-        const matchQ = !activeLibQuery || ex.name.toLowerCase().includes(activeLibQuery) || ex.equip.toLowerCase().includes(activeLibQuery);
-        return matchCat && matchQ;
-      });
+      if (!freeExerciseLoaded) fetchFreeExerciseDB();
+      const pool = getMergedExercisePool();
 
       const html = `
-        <input type="text" value="${activeLibQuery}" oninput="activeLibQuery=this.value.toLowerCase(); renderExerciseLibrarySheet();" placeholder="Search 37+ exercises or equipment..." class="w-full h-10 exo-input-well px-3.5 text-[13px] text-white" />
-        <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+        <div class="relative">
+          <input id="exo-lib-search-inp" type="search" autocomplete="off" autocorrect="off" spellcheck="false" placeholder="Search all ${pool.length}+ exercises or equipment..." class="w-full h-10 exo-input-well pl-3.5 pr-9 text-[13px] text-white" />
+          <button id="exo-lib-clear-btn" type="button" onclick="clearExerciseLibrarySearch()" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white/15 text-[11px] font-bold text-white flex items-center justify-center">✕</button>
+        </div>
+        <div id="exo-lib-cats" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
           ${EXERCISE_CATEGORIES.map(c => `
-            <button onclick="activeLibCat='${c}'; renderExerciseLibrarySheet();" class="px-3 py-1.5 rounded-lg font-brand text-[11px] font-bold shrink-0" style="background: ${activeLibCat === c ? "var(--exo-volt)" : "var(--exo-well)"}; color: ${activeLibCat === c ? "#07080C" : "var(--exo-text-secondary)"};">${c}</button>
+            <button type="button" data-lib-cat="${c}" onclick="setExerciseLibraryCategory('${c}')" class="px-3 py-1.5 rounded-lg font-brand text-[11px] font-bold shrink-0" style="background: ${activeLibCat === c ? "var(--exo-volt)" : "var(--exo-well)"}; color: ${activeLibCat === c ? "#07080C" : "var(--exo-text-secondary)"};">${c}</button>
           `).join("")}
         </div>
-        <div class="space-y-2 max-h-[46vh] overflow-y-auto pr-0.5">
-          ${filtered.map(ex => `
-            <button onclick="addLibraryExerciseToActiveDay('${ex.id}')" class="w-full p-3 rounded-xl exo-well flex items-center justify-between gap-2 text-left active:scale-[0.98] transition">
-              <div class="flex items-center gap-2.5 min-w-0">
-                ${renderMedallionSvg(ex.muscle)}
-                <div class="min-w-0">
-                  <div class="font-brand text-[13px] font-bold text-white truncate">${ex.name}</div>
-                  <div class="text-[11px]" style="color: var(--exo-text-secondary);">${ex.muscle} · ${ex.equip} · ${ex.sets} × ${ex.minReps}–${ex.maxReps}</div>
-                </div>
-              </div>
-              <span class="px-2.5 py-1 rounded-lg font-brand text-[11px] font-extrabold text-black shrink-0" style="background-color: var(--exo-volt);">+ Add</span>
-            </button>
-          `).join("")}
-        </div>
+        <div id="exo-lib-count" class="text-[10px] font-bold uppercase tracking-widest" style="color: var(--exo-text-secondary);"></div>
+        <div id="exo-lib-results" class="space-y-2 max-h-[46vh] overflow-y-auto pr-0.5"></div>
       `;
-      openBottomSheet("Exercise Library", "Tap any exercise to add to today's workout", html);
+      openBottomSheet("Exercise Library", `${pool.length}+ movements with visual demos`, html);
+
+      const inp = document.getElementById("exo-lib-search-inp");
+      if (inp) {
+        inp.addEventListener("input", (e) => {
+          activeLibQuery = (e.target.value || "").toLowerCase();
+          const clr = document.getElementById("exo-lib-clear-btn");
+          if (clr) clr.classList.toggle("hidden", activeLibQuery.length === 0);
+          updateExerciseLibraryResults();
+        });
+      }
+      updateExerciseLibraryResults();
+    }
+
+    function clearExerciseLibrarySearch() {
+      activeLibQuery = "";
+      const inp = document.getElementById("exo-lib-search-inp");
+      if (inp) {
+        inp.value = "";
+        inp.focus();
+      }
+      const clr = document.getElementById("exo-lib-clear-btn");
+      if (clr) clr.classList.add("hidden");
+      updateExerciseLibraryResults();
+    }
+
+    function setExerciseLibraryCategory(cat) {
+      activeLibCat = cat;
+      document.querySelectorAll("#exo-lib-cats button").forEach(btn => {
+        const isAct = btn.getAttribute("data-lib-cat") === cat;
+        btn.style.background = isAct ? "var(--exo-volt)" : "var(--exo-well)";
+        btn.style.color = isAct ? "#07080C" : "var(--exo-text-secondary)";
+      });
+      updateExerciseLibraryResults();
+    }
+
+    function updateExerciseLibraryResults() {
+      const resultsEl = document.getElementById("exo-lib-results");
+      const countEl = document.getElementById("exo-lib-count");
+      if (!resultsEl) return;
+
+      const pool = getMergedExercisePool();
+      const terms = activeLibQuery.trim().split(/\s+/).filter(Boolean);
+
+      const matches = pool.filter(ex => {
+        const matchCat = activeLibCat === "All" || ex.muscle === activeLibCat;
+        if (!matchCat) return false;
+        if (terms.length === 0) return true;
+        const hay = `${ex.name} ${ex.muscle} ${ex.equip}`.toLowerCase();
+        return terms.every(t => hay.includes(t));
+      });
+
+      const shown = terms.length > 0 ? matches.slice(0, 120) : matches.slice(0, 80);
+      if (countEl) {
+        countEl.textContent = terms.length > 0
+          ? `Found ${matches.length} matching exercise${matches.length === 1 ? "" : "s"}`
+          : `Showing ${shown.length} of ${matches.length} ${activeLibCat === "All" ? "total" : activeLibCat} exercises`;
+      }
+
+      if (shown.length === 0) {
+        resultsEl.innerHTML = `<div class="exo-well p-5 text-center text-[12px]" style="color: var(--exo-text-secondary);">No exercises match "${activeLibQuery}". Try switching category to <strong>All</strong>.</div>`;
+        return;
+      }
+
+      resultsEl.innerHTML = shown.map(ex => {
+        const p0 = ex.images && ex.images[0] ? ex.images[0] : "";
+        const thumb = p0
+          ? `<div class="w-10 h-10 rounded-xl overflow-hidden bg-black/50 shrink-0 border border-white/10 relative">
+               <div class="absolute inset-0 flex items-center justify-center opacity-60">${renderMedallionSvg(ex.muscle)}</div>
+               <img src="${FREE_EX_IMG_BASE}${p0}" loading="lazy" class="relative z-10 w-full h-full object-cover" onerror="if(!this.dataset.retried){this.dataset.retried='1';this.src='${FREE_EX_IMG_FALLBACK}${p0}';}else{this.style.display='none';}" />
+             </div>`
+          : renderMedallionSvg(ex.muscle);
+
+        return `
+          <button type="button" onclick="addLibraryExerciseToActiveDay('${ex.id}')" class="w-full p-3 rounded-xl exo-well flex items-center justify-between gap-2 text-left active:scale-[0.98] transition">
+            <div class="flex items-center gap-2.5 min-w-0">
+              ${thumb}
+              <div class="min-w-0">
+                <div class="font-brand text-[13px] font-bold text-white truncate">${ex.name}</div>
+                <div class="text-[11px]" style="color: var(--exo-text-secondary);">${ex.muscle} · ${ex.equip} · ${ex.sets} × ${ex.minReps}–${ex.maxReps}</div>
+              </div>
+            </div>
+            <span class="px-2.5 py-1 rounded-lg font-brand text-[11px] font-extrabold text-black shrink-0" style="background-color: var(--exo-volt);">+ Add</span>
+          </button>
+        `;
+      }).join("");
     }
 
     function addLibraryExerciseToActiveDay(libId) {
-      const item = EXERCISE_LIBRARY.find(e => e.id === libId);
+      const pool = getMergedExercisePool();
+      const item = pool.find(e => e.id === libId) || EXERCISE_LIBRARY.find(e => e.id === libId);
       const splits = getActiveSplits();
       const split = splits[state.activeSplitDay];
       if (!item || !split) return;
@@ -2148,7 +2475,7 @@
     }
 
     /* ==========================================================================
-       9. FUEL & HYDRATION VIEW (EXO PLAN + MANUAL FOOD LOG + LIQUID TANK)
+       9. FUEL & HYDRATION VIEW (EXO PLAN + MANUAL FOOD LOG + BARCODE + WEATHER)
        ========================================================================== */
     function setFuelSubTab(tab) {
       state.fuelSubTab = tab;
@@ -2224,6 +2551,132 @@
 
     function testWaterReminder() {
       notifyUser("Hydration Check: Drink 400 ml now 💧", "#00D8FF");
+    }
+
+    async function syncLocalHeatHydration() {
+      notifyUser("Checking local temperature...", "#00D8FF");
+      const applyTemp = async (lat, lon) => {
+        try {
+          const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m`);
+          const data = await res.json();
+          const temp = data && data.current ? Math.round(data.current.temperature_2m) : 32;
+          state.profile.weatherTempC = temp;
+          state.profile.heatBonusMl = temp >= 34 ? 500 : temp >= 28 ? 300 : 0;
+          const t = calculatePersonalizedTargets(state.profile);
+          state.profile.targetWaterMl = t.targetWaterMl;
+          persistState();
+          renderFuelView();
+          notifyUser(`${temp}°C detected · +${state.profile.heatBonusMl} ml heat bonus`, "#00D8FF");
+        } catch (e) {
+          notifyUser("Could not reach weather service", "#FF4D4F");
+        }
+      };
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          pos => applyTemp(pos.coords.latitude, pos.coords.longitude),
+          () => applyTemp(18.52, 73.85)
+        );
+      } else {
+        applyTemp(18.52, 73.85);
+      }
+    }
+
+    let html5QrInstance = null;
+    function stopBarcodeScanner() {
+      if (html5QrInstance) {
+        try { html5QrInstance.stop().catch(() => {}); } catch (e) {}
+        html5QrInstance = null;
+      }
+    }
+
+    function openBarcodeScannerSheet(bucketKey) {
+      activeFoodBucket = bucketKey || activeFoodBucket;
+      const bLabel = MANUAL_MEAL_BUCKETS.find(b => b.key === activeFoodBucket)?.label || "Meal";
+      openBottomSheet(`📷 Scan Food → ${bLabel}`, "Powered by Open Food Facts (India + Global)", `
+        <div id="exo-qr-reader" class="w-full rounded-2xl overflow-hidden bg-black border border-white/15 min-h-[180px]"></div>
+        <div class="flex gap-2">
+          <input id="exo-barcode-inp" type="text" inputmode="numeric" placeholder="Or enter barcode (e.g. 8901058851298)" class="flex-1 h-10 exo-input-well px-3 text-[13px] text-white" />
+          <button onclick="lookupBarcodeProduct(document.getElementById('exo-barcode-inp').value)" class="px-4 h-10 rounded-xl font-brand text-[12px] font-extrabold text-black" style="background-color: var(--exo-volt);">Lookup</button>
+        </div>
+        <div id="exo-barcode-result"></div>
+      `);
+
+      setTimeout(() => {
+        if (window.Html5Qrcode && document.getElementById("exo-qr-reader")) {
+          html5QrInstance = new Html5Qrcode("exo-qr-reader");
+          html5QrInstance.start(
+            { facingMode: "environment" },
+            { fps: 10, qrbox: { width: 220, height: 110 } },
+            (decodedText) => {
+              stopBarcodeScanner();
+              lookupBarcodeProduct(decodedText);
+            },
+            () => {}
+          ).catch(() => {
+            const el = document.getElementById("exo-qr-reader");
+            if (el) el.innerHTML = `<div class="p-4 text-center text-[11px] text-zinc-400">Camera unavailable here — enter any barcode number below to look up nutrition instantly.</div>`;
+          });
+        }
+      }, 240);
+    }
+
+    async function lookupBarcodeProduct(code) {
+      const clean = (code || "").trim();
+      if (!clean) return;
+      const resEl = document.getElementById("exo-barcode-result");
+      if (resEl) resEl.innerHTML = `<div class="exo-well p-3 text-center text-[12px] text-zinc-300">Fetching nutrition from Open Food Facts...</div>`;
+      try {
+        const resp = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(clean)}.json?fields=product_name,brands,nutriments`);
+        const json = await resp.json();
+        if (!json || json.status !== 1 || !json.product) {
+          if (resEl) resEl.innerHTML = `<div class="exo-well p-3 text-center text-[12px] text-amber-400">Product not found for barcode ${clean}.</div>`;
+          return;
+        }
+        const p = json.product;
+        const n = p.nutriments || {};
+        const name = `${p.brands ? p.brands + " " : ""}${p.product_name || "Packaged Item"}`.trim();
+        const kcal100 = Math.round(n["energy-kcal_100g"] || n["energy-kcal_serving"] || 150);
+        const pro100 = Math.round((n["proteins_100g"] || n["proteins_serving"] || 5) * 10) / 10;
+        const carbs100 = Math.round((n["carbohydrates_100g"] || n["carbohydrates_serving"] || 15) * 10) / 10;
+        const fat100 = Math.round((n["fat_100g"] || n["fat_serving"] || 5) * 10) / 10;
+
+        if (resEl) {
+          resEl.innerHTML = `
+            <div class="exo-well p-3.5 space-y-2.5 border border-emerald-400/30">
+              <div class="font-brand text-[14px] font-extrabold text-white">${name}</div>
+              <div class="text-[11px]" style="color: var(--exo-green);">Per 100g/serving: ${kcal100} kcal · ${pro100}g P · ${carbs100}g C · ${fat100}g F</div>
+              <div class="grid grid-cols-3 gap-2">
+                ${[0.5, 1, 1.5].map(mult => `
+                  <button onclick="addScannedManualFood('${name.replace(/'/g, "\\'")}', ${mult}, ${kcal100}, ${pro100}, ${carbs100}, ${fat100})" class="py-2 rounded-xl font-brand text-[11px] font-extrabold text-black" style="background-color: var(--exo-green);">+ ${mult}× (${Math.round(kcal100 * mult)} kcal)</button>
+                `).join("")}
+              </div>
+            </div>
+          `;
+        }
+      } catch (e) {
+        if (resEl) resEl.innerHTML = `<div class="exo-well p-3 text-center text-[12px] text-red-400">Network error reaching Open Food Facts.</div>`;
+      }
+    }
+
+    function addScannedManualFood(name, qty, baseKcal, basePro, baseCarbs, baseFat) {
+      const log = getTodayDailyLog();
+      log.manualMeals[activeFoodBucket].push({
+        uid: Date.now() + Math.random(),
+        name,
+        qty,
+        baseKcal,
+        basePro,
+        baseCarbs,
+        baseFat,
+        kcal: Math.round(baseKcal * qty),
+        pro: Math.round(basePro * qty * 10) / 10,
+        carbs: Math.round(baseCarbs * qty * 10) / 10,
+        fat: Math.round(baseFat * qty * 10) / 10
+      });
+      persistState();
+      closeBottomSheet();
+      renderFuelView();
+      notifyUser(`Scanned & logged ${name}`, "#00E676");
     }
 
     let activeFoodBucket = "breakfast";
@@ -2338,12 +2791,15 @@
           });
           return `
             <div class="exo-card p-4 space-y-2.5">
-              <div class="flex items-center justify-between">
+              <div class="flex items-center justify-between gap-2">
                 <div>
                   <div class="font-brand text-[14px] font-extrabold text-white">${b.label}</div>
                   <div class="text-[11px] tabular-nums" style="color: var(--exo-text-secondary);">${bucketKcal} kcal logged</div>
                 </div>
-                <button onclick="openFoodSearchSheet('${b.key}')" class="h-8 px-3 rounded-lg font-brand text-[11px] font-extrabold text-black active:scale-95 transition" style="background-color: var(--exo-green);">+ Add Food</button>
+                <div class="flex items-center gap-1.5">
+                  <button onclick="openBarcodeScannerSheet('${b.key}')" class="h-8 px-2.5 rounded-lg exo-well font-brand text-[11px] font-bold text-zinc-200 active:scale-95 transition">📷 Scan</button>
+                  <button onclick="openFoodSearchSheet('${b.key}')" class="h-8 px-3 rounded-lg font-brand text-[11px] font-extrabold text-black active:scale-95 transition" style="background-color: var(--exo-green);">+ Add Food</button>
+                </div>
               </div>
               ${items.length > 0 ? `<div class="space-y-1.5 pt-1">${items.map((it, idx) => `
                 <div class="exo-well px-3 py-2 rounded-xl flex items-center justify-between gap-2">
@@ -2472,6 +2928,13 @@
       const knob = document.getElementById("water-notif-knob");
       tBtn.style.backgroundColor = state.waterNotifEnabled ? "var(--exo-blue)" : "#3F3F46";
       knob.style.transform = state.waterNotifEnabled ? "translateX(20px)" : "translateX(0px)";
+
+      const heatLbl = document.getElementById("heat-sync-label");
+      if (heatLbl) {
+        heatLbl.textContent = state.profile.weatherTempC !== null
+          ? `${state.profile.weatherTempC}°C (+${state.profile.heatBonusMl || 0}ml)`
+          : "Heat Sync";
+      }
     }
 
     /* ==========================================================================
@@ -2769,6 +3232,7 @@
         state.customSplits = buildDefaultCustomSplits();
       }
       obBuilderDay = Number(Object.keys(state.customSplits)[0]) || 1;
+      if (!freeExerciseLoaded) fetchFreeExerciseDB();
       document.getElementById("exo-onboarding-overlay").classList.remove("hidden");
       renderOnboardingStep();
     }
@@ -2852,7 +3316,8 @@
     }
 
     function obAddLibraryExercise(libId) {
-      const item = EXERCISE_LIBRARY.find(e => e.id === libId);
+      const pool = getMergedExercisePool();
+      const item = pool.find(e => e.id === libId) || EXERCISE_LIBRARY.find(e => e.id === libId);
       if (!item || !state.customSplits[obBuilderDay]) return;
       state.customSplits[obBuilderDay].slots.push(createSlotFromLibraryItem(item, `c${obBuilderDay}`));
       renderOnboardingStep();
@@ -2865,11 +3330,15 @@
     }
 
     function buildObLibraryRowsHtml() {
-      const filtered = EXERCISE_LIBRARY.filter(ex => {
+      const pool = getMergedExercisePool();
+      const terms = obLibSearch.trim().split(/\s+/).filter(Boolean);
+      const filtered = pool.filter(ex => {
         const matchCat = obLibCat === "All" || ex.muscle === obLibCat;
-        const matchQ = !obLibSearch || ex.name.toLowerCase().includes(obLibSearch) || ex.equip.toLowerCase().includes(obLibSearch);
-        return matchCat && matchQ;
-      });
+        if (!matchCat) return false;
+        if (terms.length === 0) return true;
+        const hay = `${ex.name} ${ex.muscle} ${ex.equip}`.toLowerCase();
+        return terms.every(t => hay.includes(t));
+      }).slice(0, 80);
       if (filtered.length === 0) {
         return `<div class="text-[11px] text-center py-3" style="color: var(--exo-text-secondary);">No exercises match "${obLibSearch}"</div>`;
       }
@@ -3196,6 +3665,7 @@
     function finishOnboarding() {
       const t = calculatePersonalizedTargets(obDraft);
       state.profile = { ...obDraft, ...t, onboarded: true };
+      localStorage.setItem(ONBOARD_LOCK_KEY, "1");
       state.activeSplitDay = 1;
       persistState();
       closeOnboarding();
@@ -3276,6 +3746,7 @@
         }, 3000);
       } else {
         localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(ONBOARD_LOCK_KEY);
         state = buildInitialState();
         persistState();
         confirmReset = false;
@@ -3290,6 +3761,7 @@
        14. APP BOOT & SAFE SERVICE WORKER REGISTRATION
        ========================================================================== */
     window.onload = function () {
+      fetchFreeExerciseDB();
       switchView(state.currentView || "workouts");
       if (!state.profile.onboarded) {
         openOnboarding(1);

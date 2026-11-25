@@ -7,6 +7,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="theme-color" content="#07080C" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='44' fill='%2307080C'/%3E%3Cpath d='M108 32L52 106h42l-10 54 56-74H98l10-54z' fill='%23D4FF00'/%3E%3C/svg%3E" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Crect width='192' height='192' rx='44' fill='%2307080C'/%3E%3Cpath d='M108 32L52 106h42l-10 54 56-74H98l10-54z' fill='%23D4FF00'/%3E%3C/svg%3E" />
   <title>EXO — Performance &amp; Fuel System</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js" defer></script>
@@ -574,18 +576,24 @@
     </main>
 
     <!-- ==========================================
-         VIEW 3: AI TRAINER COACH
+         VIEW 3: AI TRAINER COACH (EXO INTELLIGENCE 2.0 · GEMINI LIVE)
          ========================================== -->
     <main id="view-coach" class="hidden flex-1 px-5 pt-2 space-y-4">
-      <!-- Living AI Coach Hero with Breathing Aurora Orb + Live Readiness Score -->
+      <!-- Living AI Coach Hero with Breathing Aurora Orb + Live Status + Readiness Score -->
       <section class="exo-card p-5 space-y-4">
-        <div class="flex items-center gap-4">
-          <div id="ai-living-orb" class="exo-ai-orb shrink-0"></div>
-          <div class="min-w-0">
-            <p class="text-[10px] font-bold uppercase tracking-[0.18em]" style="color: var(--exo-violet);">Adaptive Engine</p>
-            <h1 class="font-brand text-[21px] font-extrabold text-white mt-0.5 leading-tight truncate">EXO Intelligence</h1>
-            <p class="text-[12px] mt-0.5 leading-snug" style="color: var(--exo-text-secondary);">Live load, recovery &amp; macro telemetry.</p>
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3.5 min-w-0">
+            <div id="ai-living-orb" class="exo-ai-orb shrink-0"></div>
+            <div class="min-w-0">
+              <div class="flex items-center gap-1.5">
+                <span id="coach-status-dot" class="w-2 h-2 rounded-full" style="background-color: var(--exo-volt);"></span>
+                <p id="coach-status-label" class="text-[10px] font-bold uppercase tracking-[0.16em] truncate" style="color: var(--exo-violet);">Gemini 2.5 Live</p>
+              </div>
+              <h1 class="font-brand text-[21px] font-extrabold text-white mt-0.5 leading-tight truncate">EXO Intelligence</h1>
+              <p id="coach-telemetry-sub" class="text-[11px] mt-0.5 leading-snug truncate" style="color: var(--exo-text-secondary);">Synced with your lifts &amp; macros</p>
+            </div>
           </div>
+          <button onclick="resetCoachChat()" title="Clear conversation" class="h-8 px-2.5 rounded-xl exo-well text-[11px] font-brand font-bold text-zinc-300 active:scale-95 transition shrink-0">↻ Clear</button>
         </div>
 
         <!-- Live Readiness Telemetry Bar -->
@@ -605,62 +613,63 @@
         </div>
       </section>
 
-      <!-- Quick Audit Prompts with Crisp Duotone Icons -->
+      <!-- 4 Hyper-Focused Smart Triage Cards -->
       <div class="grid grid-cols-2 gap-2.5">
-        <button onclick="askAICoach('Analyze my current logged workout weights, rep hits, and Mastery Tiers. Should I hold or push loads next week?')" class="exo-card p-3.5 text-left active:scale-[0.98] transition space-y-2">
+        <button onclick="triggerSmartTriage('gameplan')" class="exo-card p-3.5 text-left active:scale-[0.98] transition space-y-2">
           <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background: rgba(212,255,0,0.14); color: var(--exo-volt);">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
+          </div>
+          <div>
+            <div class="font-brand text-[13px] font-bold text-white">Today's Gameplan</div>
+            <div class="text-[11px] mt-0.5 leading-snug" style="color: var(--exo-text-secondary);">PR targets &amp; warm-up loads</div>
+          </div>
+        </button>
+
+        <button onclick="triggerSmartTriage('macro_gap')" class="exo-card p-3.5 text-left active:scale-[0.98] transition space-y-2">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background: rgba(0,230,118,0.14); color: var(--exo-green);">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 016.038 7.048 8.287 8.287 0 009 9.6a8.983 8.983 0 013.361-6.867 8.21 8.21 0 003 2.48z"/></svg>
+          </div>
+          <div>
+            <div class="font-brand text-[13px] font-bold text-white">Close Macro Gap</div>
+            <div class="text-[11px] mt-0.5 leading-snug" style="color: var(--exo-text-secondary);">Exact Indian meal fix for today</div>
+          </div>
+        </button>
+
+        <button onclick="triggerSmartTriage('plateau')" class="exo-card p-3.5 text-left active:scale-[0.98] transition space-y-2">
+          <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background: rgba(0,216,255,0.14); color: var(--exo-blue);">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941"/></svg>
           </div>
           <div>
             <div class="font-brand text-[13px] font-bold text-white">Overload Audit</div>
-            <div class="text-[11px] mt-0.5 leading-snug" style="color: var(--exo-text-secondary);">Next weight jumps &amp; rep velocity</div>
+            <div class="text-[11px] mt-0.5 leading-snug" style="color: var(--exo-text-secondary);">Break stalls &amp; 1RM bottlenecks</div>
           </div>
         </button>
-        <button onclick="askAICoach('I am returning to the gym after a break. Give me tendon-safe cues for my current split.')" class="exo-card p-3.5 text-left active:scale-[0.98] transition space-y-2">
-          <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background: rgba(0,216,255,0.14); color: var(--exo-blue);">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z"/></svg>
-          </div>
-          <div>
-            <div class="font-brand text-[13px] font-bold text-white">Tendon Safety</div>
-            <div class="text-[11px] mt-0.5 leading-snug" style="color: var(--exo-text-secondary);">Joint-friendly return cues</div>
-          </div>
-        </button>
-        <button onclick="askAICoach('I am at my office all day. How can I easily hit my daily protein target under my calorie budget?')" class="exo-card p-3.5 text-left active:scale-[0.98] transition space-y-2">
-          <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background: rgba(0,230,118,0.14); color: var(--exo-green);">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>
-          </div>
-          <div>
-            <div class="font-brand text-[13px] font-bold text-white">Office Protein</div>
-            <div class="text-[11px] mt-0.5 leading-snug" style="color: var(--exo-text-secondary);">Desk shakes, bars &amp; tiffin hacks</div>
-          </div>
-        </button>
-        <button onclick="askAICoach('I slept poorly and feel low energy before training today. How should I adjust sets and load?')" class="exo-card p-3.5 text-left active:scale-[0.98] transition space-y-2">
+
+        <button onclick="triggerSmartTriage('low_energy')" class="exo-card p-3.5 text-left active:scale-[0.98] transition space-y-2">
           <div class="w-8 h-8 rounded-xl flex items-center justify-center" style="background: rgba(139,92,246,0.18); color: #C4B5FD;">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"/></svg>
           </div>
           <div>
-            <div class="font-brand text-[13px] font-bold text-white">Low-Energy Mode</div>
-            <div class="text-[11px] mt-0.5 leading-snug" style="color: var(--exo-text-secondary);">Auto-regulate volume safely</div>
+            <div class="font-brand text-[13px] font-bold text-white">Low-Energy Pivot</div>
+            <div class="text-[11px] mt-0.5 leading-snug" style="color: var(--exo-text-secondary);">Smart volume trim for tired days</div>
           </div>
         </button>
       </div>
 
       <!-- Coach Conversation Feed -->
-      <div id="coach-chat-feed" class="space-y-3">
-        <div class="exo-card p-4 space-y-1.5">
-          <div class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest" style="color: var(--exo-violet);">
-            <span class="w-1.5 h-1.5 rounded-full bg-[#A78BFA]"></span> EXO Coach Ready
-          </div>
-          <p class="text-[13px] text-zinc-200 leading-relaxed">
-            Tap any audit card above or ask about exercise swaps, weight progression, or office macros. I analyze your real logged sets and daily targets automatically.
-          </p>
-        </div>
+      <div id="coach-chat-feed" class="space-y-3"></div>
+
+      <!-- Quick Follow-Up Pills -->
+      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+        <button onclick="askAICoach('What if the main bench or cable machine is busy right now? Give me a 1-tap swap with exact weight.')" class="px-3 py-1.5 rounded-full exo-well text-[11px] font-semibold text-zinc-300 shrink-0 active:scale-95 transition">🔄 Machine busy swap</button>
+        <button onclick="askAICoach('Give me a 25g+ protein desk snack under 220 kcal using Indian options.')" class="px-3 py-1.5 rounded-full exo-well text-[11px] font-semibold text-zinc-300 shrink-0 active:scale-95 transition">🥤 25g desk protein</button>
+        <button onclick="askAICoach('Check my recovery and tendon safety for today’s split.')" class="px-3 py-1.5 rounded-full exo-well text-[11px] font-semibold text-zinc-300 shrink-0 active:scale-95 transition">🛡️ Joint &amp; tendon check</button>
       </div>
 
       <!-- Coach Input Bar -->
       <div class="exo-card p-2 flex items-center gap-2">
         <input id="coach-input" type="text" placeholder="Ask EXO Coach anything..." class="flex-1 h-10 bg-transparent px-3 text-[13px] text-white placeholder-zinc-500 outline-none" onkeydown="if(event.key==='Enter') sendCoachInput()" />
-        <button onclick="sendCoachInput()" class="h-10 px-4 rounded-xl font-brand text-[12px] font-extrabold text-black active:scale-95 transition" style="background-color: var(--exo-volt);">Ask</button>
+        <button id="coach-send-btn" onclick="sendCoachInput()" class="h-10 px-4 rounded-xl font-brand text-[12px] font-extrabold text-black active:scale-95 transition" style="background-color: var(--exo-volt);">Ask</button>
       </div>
     </main>
 
@@ -867,6 +876,8 @@
        ========================================================================== */
     const STORAGE_KEY = "exo_perf_fuel_state_v4";
     const ONBOARD_LOCK_KEY = "exo_onboarded_lock_v1";
+    const SUPABASE_COACH_URL = "https://lsabtkpcdwbnayrvccan.supabase.co/functions/v1/exo-coach";
+    const SUPABASE_ANON_KEY = "sb_publishable_tKoGYCeHSYoWsfLQc--2pQ_bKRzTgyf";
     const LEGACY_KEYS = [
       "exo_perf_fuel_state_v3",
       "exo_perf_fuel_state_v2",
@@ -1584,7 +1595,7 @@
       updateAmbientGlow();
       if (viewName === "workouts") renderWorkoutsView();
       if (viewName === "fuel") renderFuelView();
-      if (viewName === "coach") renderCoachReadiness();
+      if (viewName === "coach") initCoachView();
       if (viewName === "progress") renderProgressView();
     }
 
@@ -2035,8 +2046,10 @@
       const html = `
         <div class="grid grid-cols-2 gap-2">
           <button onclick="openExerciseAnalyticsSheet('${slot.slotId}')" class="h-11 rounded-xl font-brand text-[12px] font-extrabold text-black" style="background-color: var(--exo-volt);">Stats &amp; 1RM</button>
-          <button onclick="insertWarmupSet('${slot.slotId}')" class="h-11 rounded-xl exo-well font-brand text-[12px] font-bold" style="color: var(--exo-amber);">+ 50% Warm-Up</button>
+          <button onclick="openExerciseLibrarySheet('${slot.slotId}')" class="h-11 rounded-xl exo-well font-brand text-[12px] font-bold" style="color: var(--exo-blue);">🔄 Replace Exercise</button>
         </div>
+
+        <button onclick="insertWarmupSet('${slot.slotId}')" class="w-full h-10 rounded-xl exo-well font-brand text-[12px] font-bold" style="color: var(--exo-amber);">+ Insert 50% Warm-Up Set</button>
 
         <div class="grid grid-cols-2 gap-2">
           <button onclick="moveExerciseInDay('${slot.slotId}', -1); closeBottomSheet();" class="h-10 rounded-xl exo-well font-brand text-[12px] font-bold text-zinc-200 active:scale-95 transition">↑ Move Earlier</button>
@@ -2311,16 +2324,24 @@
     }
 
     /* ==========================================================================
-       7. CATEGORIZED EXERCISE LIBRARY SHEET (GLITCH-FREE SEARCH + 800+ DB)
+       7. CATEGORIZED EXERCISE LIBRARY SHEET (GLITCH-FREE SEARCH + 800+ DB + REPLACE)
        ========================================================================== */
     let activeLibCat = "All";
     let activeLibQuery = "";
+    let replacingSlotId = null;
 
-    function openExerciseLibrarySheet() {
-      activeLibCat = "All";
+    function openExerciseLibrarySheet(replaceSlotId = null) {
+      replacingSlotId = typeof replaceSlotId === "string" ? replaceSlotId : null;
+      const targetSlot = replacingSlotId ? findSlotById(replacingSlotId) : null;
+      activeLibCat = targetSlot && EXERCISE_CATEGORIES.includes(targetSlot.muscle) ? targetSlot.muscle : "All";
       activeLibQuery = "";
       if (!freeExerciseLoaded) fetchFreeExerciseDB();
       const pool = getMergedExercisePool();
+
+      const sheetTitle = targetSlot ? `Replace ${getActiveOption(targetSlot).name}` : "Exercise Library";
+      const sheetSub = targetSlot
+        ? `Pick any replacement (${pool.length}+ movements)`
+        : `${pool.length}+ movements with visual demos`;
 
       const html = `
         <div class="relative">
@@ -2335,7 +2356,7 @@
         <div id="exo-lib-count" class="text-[10px] font-bold uppercase tracking-widest" style="color: var(--exo-text-secondary);"></div>
         <div id="exo-lib-results" class="space-y-2 max-h-[46vh] overflow-y-auto pr-0.5"></div>
       `;
-      openBottomSheet("Exercise Library", `${pool.length}+ movements with visual demos`, html);
+      openBottomSheet(sheetTitle, sheetSub, html);
 
       const inp = document.getElementById("exo-lib-search-inp");
       if (inp) {
@@ -2417,7 +2438,7 @@
                 <div class="text-[11px]" style="color: var(--exo-text-secondary);">${ex.muscle} · ${ex.equip} · ${ex.sets} × ${ex.minReps}–${ex.maxReps}</div>
               </div>
             </div>
-            <span class="px-2.5 py-1 rounded-lg font-brand text-[11px] font-extrabold text-black shrink-0" style="background-color: var(--exo-volt);">+ Add</span>
+            <span class="px-2.5 py-1 rounded-lg font-brand text-[11px] font-extrabold text-black shrink-0" style="background-color: ${replacingSlotId ? "var(--exo-blue)" : "var(--exo-volt)"};">${replacingSlotId ? "Replace" : "+ Add"}</span>
           </button>
         `;
       }).join("");
@@ -2429,6 +2450,24 @@
       const splits = getActiveSplits();
       const split = splits[state.activeSplitDay];
       if (!item || !split) return;
+
+      if (replacingSlotId) {
+        const idx = split.slots.findIndex(s => s.slotId === replacingSlotId);
+        if (idx !== -1) {
+          const oldSlot = split.slots[idx];
+          const newSlot = createSlotFromLibraryItem(item, `d${state.activeSplitDay}`);
+          newSlot.sets = oldSlot.sets || newSlot.sets;
+          split.slots[idx] = newSlot;
+          replacingSlotId = null;
+          persistState();
+          closeBottomSheet();
+          renderWorkoutsView();
+          notifyUser(`Replaced with ${item.name}`, "#00D8FF");
+          return;
+        }
+        replacingSlotId = null;
+      }
+
       split.slots.push(createSlotFromLibraryItem(item, `d${state.activeSplitDay}`));
       persistState();
       closeBottomSheet();
@@ -2938,85 +2977,362 @@
     }
 
     /* ==========================================================================
-       10. AI COACH ENGINE (TELEMETRY-AWARE + OFFLINE RESILIENT)
+       10. AI COACH ENGINE (EXO INTELLIGENCE 2.0 · SUPABASE GEMINI + TELEMETRY)
        ========================================================================== */
-    function renderCoachReadiness() {
+    let coachChatHistory = [];
+    let coachIsBusy = false;
+
+    function getLiveCoachTelemetry() {
       const log = getTodayDailyLog();
-      const targetWater = state.profile.targetWaterMl || 3500;
+      const prof = state.profile;
+      const targetWater = prof.targetWaterMl || 3500;
       let waterMl = log.extraWaterMl || 0;
       getScaledHydrationSlots().forEach(s => { if (log.waterChecked[s.id]) waterMl += s.ml; });
       const hydroPct = Math.min(100, Math.round((waterMl / targetWater) * 100));
 
-      const targetPro = state.profile.targetProtein || 110;
+      const targetKcal = prof.targetKcal || 1750;
+      const targetPro = prof.targetProtein || 110;
+      let totalKcal = 0;
       let totalPro = 0;
       if (state.fuelLogMode === "manual") {
-        MANUAL_MEAL_BUCKETS.forEach(b => (log.manualMeals[b.key] || []).forEach(it => totalPro += (it.pro || 0)));
+        MANUAL_MEAL_BUCKETS.forEach(b => (log.manualMeals[b.key] || []).forEach(it => {
+          totalKcal += (it.kcal || 0);
+          totalPro += (it.pro || 0);
+        }));
       } else {
         const meals = WEEKLY_MEAL_PLAN[state.selectedWeekday] || BASE_MEALS;
-        const defCh = state.profile.diet === "veg" ? "b" : "a";
+        const defCh = prof.diet === "veg" ? "b" : "a";
         meals.forEach((m, idx) => {
           const k = `${state.selectedWeekday}_${idx}`;
-          if (log.mealsChecked[k]) totalPro += m[log.mealChoices[k] || defCh].pro;
+          if (log.mealsChecked[k]) {
+            const item = m[log.mealChoices[k] || defCh];
+            totalKcal += item.kcal;
+            totalPro += item.pro;
+          }
         });
       }
+
       const proPct = Math.min(100, Math.round((totalPro / targetPro) * 100));
       const readiness = Math.min(99, Math.max(60, Math.round(60 + hydroPct * 0.2 + proPct * 0.2)));
+      const splits = getActiveSplits();
+      const curSplit = splits[state.activeSplitDay] || Object.values(splits)[0];
 
-      document.getElementById("coach-readiness-val").textContent = `${readiness}%`;
-      document.getElementById("coach-hydro-val").textContent = `${hydroPct}%`;
-      document.getElementById("coach-pro-val").textContent = `${proPct}%`;
+      return {
+        prof,
+        curSplit,
+        waterMl,
+        targetWater,
+        hydroPct,
+        totalKcal: Math.round(totalKcal),
+        targetKcal,
+        remKcal: Math.max(0, targetKcal - Math.round(totalKcal)),
+        totalPro: Math.round(totalPro),
+        targetPro,
+        remPro: Math.max(0, targetPro - Math.round(totalPro)),
+        proPct,
+        readiness,
+        creatineDone: Boolean(log.creatine),
+        steps: log.steps || 0
+      };
+    }
+
+    function renderCoachReadiness() {
+      const t = getLiveCoachTelemetry();
+      document.getElementById("coach-readiness-val").textContent = `${t.readiness}%`;
+      document.getElementById("coach-hydro-val").textContent = `${t.hydroPct}%`;
+      document.getElementById("coach-pro-val").textContent = `${t.proPct}%`;
+      const subEl = document.getElementById("coach-telemetry-sub");
+      if (subEl) {
+        subEl.textContent = `${t.curSplit.name} · ${t.remPro}g P & ${t.remKcal} kcal left`;
+      }
+    }
+
+    function initCoachView() {
+      renderCoachReadiness();
+      const feed = document.getElementById("coach-chat-feed");
+      if (feed && feed.children.length === 0) {
+        const t = getLiveCoachTelemetry();
+        const athlete = (t.prof.name || "Athlete").trim() || "Athlete";
+        feed.innerHTML = `
+          <div class="exo-card p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest" style="color: var(--exo-violet);">
+                <span class="w-1.5 h-1.5 rounded-full bg-[#A78BFA]"></span> EXO Intelligence 2.0
+              </div>
+              <span class="text-[10px] font-semibold text-zinc-400">Live Telemetry</span>
+            </div>
+            <p class="text-[13px] text-zinc-200 leading-relaxed">
+              Hey <strong>${athlete}</strong> — you're queued for <strong>${t.curSplit.name}</strong> (${t.curSplit.slots.length} exercises) with <strong>${t.remPro}g protein</strong> &amp; <strong>${t.remKcal.toLocaleString()} kcal</strong> left today. Tap any triage card above or ask me anything.
+            </p>
+          </div>
+        `;
+      }
+    }
+
+    function resetCoachChat() {
+      coachChatHistory = [];
+      const feed = document.getElementById("coach-chat-feed");
+      if (feed) feed.innerHTML = "";
+      initCoachView();
+      notifyUser("Conversation reset", "#A78BFA");
+    }
+
+    function triggerSmartTriage(mode) {
+      const t = getLiveCoachTelemetry();
+      const prompts = {
+        gameplan: `Build my exact session gameplan for ${t.curSplit.name} today. Tell me which 2 lifts to push for a PR based on my logged weights, exact warm-up weights, and rest pacing.`,
+        macro_gap: `I have ${t.remKcal} kcal and ${t.remPro}g protein remaining today (${t.prof.diet === "veg" ? "Vegetarian" : "Non-Veg"} diet). Give me 2 practical Indian meal/snack options to close this gap cleanly.`,
+        plateau: `Audit my logged workout weights and rep progress across ${t.curSplit.name}. Spot any stalls and give me specific load or technique adjustments for next week.`,
+        low_energy: `I'm feeling fatigued after work today. Show me how to auto-regulate ${t.curSplit.name} so I preserve strength without burning out my CNS or joints.`
+      };
+      askAICoach(prompts[mode] || prompts.gameplan);
+    }
+
+    function buildCoachSystemInstruction() {
+      const t = getLiveCoachTelemetry();
+      const p = t.prof;
+      const exercisesSummary = t.curSplit.slots.map((sl, i) => {
+        const opt = getActiveOption(sl);
+        const rec = getExerciseRecord(sl, opt);
+        const working = rec.sets.filter(s => s.type !== "warmup");
+        const ref = working[0] || rec.sets[0];
+        const e1 = sl.metricType === "time" ? `${ref.reps}s hold` : `${ref.kg}kg x ${ref.reps} (Est 1RM: ${calcEpley1RM(ref.kg, ref.reps)}kg, Best: ${rec.bestKg || ref.kg}kg)`;
+        return `${i + 1}. ${opt.name} [${sl.muscle}] — ${working.length} sets, target ${sl.minReps}-${sl.maxReps}, current: ${e1}`;
+      }).join("\n");
+
+      const recentSessions = (state.sessionHistory || []).slice(-3).map(s =>
+        `- ${s.date}: ${s.splitName} (${s.volumeKg} kg, ${s.setsDone} sets, ${s.prCount || 0} PRs)`
+      ).join("\n") || "No completed sessions logged yet.";
+
+      return `You are EXO Intelligence 2.0, an elite, ultra-concise strength & Indian sports nutrition coach built into the EXO performance app.
+
+LIVE ATHLETE SNAPSHOT:
+- Name: ${p.name || "Athlete"} | ${p.gender}, ${p.age}y, ${p.heightCm}cm, ${p.weightKg}kg
+- Goal: ${p.goal} | Level: ${p.level} | Diet: ${p.diet === "veg" ? "Vegetarian" : "Non-Vegetarian"}
+- Today's Fuel: ${t.totalKcal} / ${t.targetKcal} kcal (${t.remKcal} kcal remaining) | Protein: ${t.totalPro}g / ${t.targetPro}g (${t.remPro}g remaining)
+- Hydration: ${(t.waterMl / 1000).toFixed(2)}L / ${(t.targetWater / 1000).toFixed(1)}L (${t.hydroPct}%) | Creatine: ${t.creatineDone ? "Taken" : "Pending"} | Steps: ${t.steps}
+- Today's Active Split (${t.curSplit.name}):
+${exercisesSummary}
+- Recent Sessions:
+${recentSessions}
+
+RESPONSE RULES:
+1. Be direct, energizing, and scannable between gym sets (110-165 words max). Use short bullet points with bold lead-ins.
+2. Always reference the athlete's real weights, remaining macros, and practical Indian foods (Eggs, Chicken Breast, Paneer, Soya Chunks, Dal, Roti, Whey, Amul High-Protein Buttermilk, Curd).
+3. If recommending a food/snack to log, optionally include ONE action tag at the very end on its own line in this exact format:
+[[ACTION:LOG_FOOD|Food Name|kcal|protein_g]]
+Example: [[ACTION:LOG_FOOD|1 Scoop Whey + 1 Banana|230|25]]
+4. If recommending a longer rest timer for heavy lifts, optionally include:
+[[ACTION:REST|120]]
+5. If recommending a low-energy volume reduction today, optionally include:
+[[ACTION:TRIM_SETS]]`;
+    }
+
+    function formatCoachMarkdown(rawText) {
+      let clean = (rawText || "").trim();
+      const actions = [];
+
+      clean = clean.replace(/\[\[ACTION:LOG_FOOD\|([^|\]]+)\|(\d+)\|(\d+(?:\.\d+)?)\]\]/g, (_, name, kcal, pro) => {
+        actions.push({ type: "LOG_FOOD", name: name.trim(), kcal: Number(kcal), pro: Number(pro) });
+        return "";
+      });
+      clean = clean.replace(/\[\[ACTION:REST\|(\d+)\]\]/g, (_, secs) => {
+        actions.push({ type: "REST", secs: Number(secs) });
+        return "";
+      });
+      clean = clean.replace(/\[\[ACTION:TRIM_SETS\]\]/g, () => {
+        actions.push({ type: "TRIM_SETS" });
+        return "";
+      });
+
+      const escaped = clean
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+      const lines = escaped.split(/\n+/).map(l => l.trim()).filter(Boolean);
+      const htmlBody = lines.map(line => {
+        const bolded = line.replace(/\*\*(.+?)\*\*/g, '<strong class="text-white font-bold">$1</strong>');
+        if (/^[-•*]\s+/.test(bolded)) {
+          return `<div class="flex items-start gap-2 text-[13px] text-zinc-200 leading-relaxed"><span style="color: var(--exo-volt);" class="font-bold mt-0.5">•</span><span>${bolded.replace(/^[-•*]\s+/, "")}</span></div>`;
+        }
+        return `<p class="text-[13px] text-zinc-200 leading-relaxed">${bolded}</p>`;
+      }).join("");
+
+      const actionButtonsHtml = actions.length > 0 ? `
+        <div class="pt-2 flex flex-wrap gap-2">
+          ${actions.map(act => {
+            if (act.type === "LOG_FOOD") {
+              const safeName = act.name.replace(/'/g, "\\'");
+              return `<button onclick="applyCoachFoodAction('${safeName}', ${act.kcal}, ${act.pro})" class="px-3 py-1.5 rounded-xl font-brand text-[11px] font-extrabold text-black active:scale-95 transition" style="background-color: var(--exo-green);">+ Log ${act.name} (${act.pro}g P)</button>`;
+            }
+            if (act.type === "REST") {
+              return `<button onclick="triggerRestTimer(${act.secs}); notifyUser('Rest timer set to ${act.secs}s', '#D4FF00');" class="px-3 py-1.5 rounded-xl font-brand text-[11px] font-extrabold text-black active:scale-95 transition" style="background-color: var(--exo-volt);">⏱️ Start ${act.secs}s Rest</button>`;
+            }
+            if (act.type === "TRIM_SETS") {
+              return `<button onclick="applyCoachTrimSetsAction()" class="px-3 py-1.5 rounded-xl font-brand text-[11px] font-extrabold text-black active:scale-95 transition" style="background-color: var(--exo-blue);">⚡ Trim 1 Accessory Set</button>`;
+            }
+            return "";
+          }).join("")}
+        </div>
+      ` : "";
+
+      return `<div class="space-y-2">${htmlBody}${actionButtonsHtml}</div>`;
+    }
+
+    function applyCoachFoodAction(name, kcal, pro) {
+      const log = getTodayDailyLog();
+      const hour = new Date().getHours();
+      const bucket = hour < 11 ? "breakfast" : hour < 16 ? "lunch" : hour < 19 ? "snack" : "dinner";
+      log.manualMeals[bucket].push({
+        uid: Date.now() + Math.random(),
+        name,
+        qty: 1,
+        baseKcal: kcal,
+        basePro: pro,
+        baseCarbs: Math.max(0, Math.round((kcal - pro * 4) / 4)),
+        baseFat: 2,
+        kcal,
+        pro,
+        carbs: Math.max(0, Math.round((kcal - pro * 4) / 4)),
+        fat: 2
+      });
+      state.fuelLogMode = "manual";
+      persistState();
+      renderCoachReadiness();
+      notifyUser(`Logged ${name} to ${bucket}!`, "#00E676");
+    }
+
+    function applyCoachTrimSetsAction() {
+      const splits = getActiveSplits();
+      const split = splits[state.activeSplitDay];
+      if (!split || split.slots.length < 3) return notifyUser("Volume already minimal", "#00D8FF");
+      let trimmed = 0;
+      split.slots.slice(2).forEach(slot => {
+        const rec = getExerciseRecord(slot, getActiveOption(slot));
+        if (rec.sets.length > 2) {
+          rec.sets.pop();
+          trimmed += 1;
+        }
+      });
+      persistState();
+      notifyUser(trimmed > 0 ? `Trimmed 1 set from ${trimmed} accessory lifts` : "Accessory sets already at 2", "#00D8FF");
+    }
+
+    function buildOfflineCoachFallback(promptText) {
+      const t = getLiveCoachTelemetry();
+      const q = promptText.toLowerCase();
+      if (q.includes("macro") || q.includes("protein") || q.includes("gap") || q.includes("snack")) {
+        const suggestion = t.prof.diet === "veg"
+          ? "100g Low-Fat Paneer + 1 Scoop Whey"
+          : "1 Scoop Whey + 3 Boiled Egg Whites";
+        const sKcal = t.prof.diet === "veg" ? 335 : 176;
+        const sPro = t.prof.diet === "veg" ? 45 : 36;
+        return `- **Remaining Budget:** **${t.remKcal} kcal** and **${t.remPro}g protein** left today.\n- **Fastest Fix:** Grab **${suggestion}** (~${sKcal} kcal · ${sPro}g protein) to lock in muscle protein synthesis.\n- **Hydration Check:** You're at **${t.hydroPct}%** water—sip 400 ml right now.\n[[ACTION:LOG_FOOD|${suggestion}|${sKcal}|${sPro}]]`;
+      }
+      if (q.includes("low-energy") || q.includes("tired") || q.includes("fatigued")) {
+        return `- **Keep Intensity, Cut Volume:** Hold your top working weights on **${t.curSplit.name}** so your nervous system keeps its strength signal.\n- **Smart Trim:** Drop 1 set from your later isolation lifts and extend rest to **2:00**.\n[[ACTION:TRIM_SETS]]\n[[ACTION:REST|120]]`;
+      }
+      const firstSlot = t.curSplit.slots[0];
+      const firstOpt = firstSlot ? getActiveOption(firstSlot) : { name: "Compound Lift" };
+      const firstRec = firstSlot ? getExerciseRecord(firstSlot, firstOpt) : null;
+      const topKg = firstRec && firstRec.sets[0] ? firstRec.sets[0].kg : 10;
+      return `- **Today's Priority (${t.curSplit.name}):** Warm up with **50% (${Math.round(topKg * 0.5)} kg)** on **${firstOpt.name}**, then beat your dimmed **PREVIOUS** reps by +1.\n- **Auto-Overload Rule:** Once every working set hits max reps cleanly, EXO automatically unlocks your next weight jump.\n- **Fuel Sync:** Keep **${t.remPro}g protein** in focus post-workout.`;
     }
 
     function sendCoachInput() {
       const inp = document.getElementById("coach-input");
       const q = (inp.value || "").trim();
-      if (!q) return;
+      if (!q || coachIsBusy) return;
       inp.value = "";
       askAICoach(q);
     }
 
-    function askAICoach(promptText) {
+    async function askAICoach(promptText) {
+      if (coachIsBusy) return;
+      coachIsBusy = true;
+
       const feed = document.getElementById("coach-chat-feed");
       const orb = document.getElementById("ai-living-orb");
-      if (orb) orb.classList.add("thinking");
+      const sendBtn = document.getElementById("coach-send-btn");
+      const statusDot = document.getElementById("coach-status-dot");
+      const statusLbl = document.getElementById("coach-status-label");
 
+      if (orb) orb.classList.add("thinking");
+      if (sendBtn) { sendBtn.disabled = true; sendBtn.style.opacity = "0.5"; }
+
+      const safeUserMsg = promptText.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       feed.innerHTML += `
         <div class="flex justify-end">
-          <div class="max-w-[85%] px-3.5 py-2.5 rounded-2xl text-[13px] font-medium text-black" style="background-color: var(--exo-volt);">${promptText}</div>
+          <div class="max-w-[85%] px-3.5 py-2.5 rounded-2xl text-[13px] font-semibold text-black" style="background-color: var(--exo-volt);">${safeUserMsg}</div>
         </div>
       `;
 
-      setTimeout(() => {
-        if (orb) orb.classList.remove("thinking");
-        const q = promptText.toLowerCase();
-        const prof = state.profile;
-        const splits = getActiveSplits();
-        const curSplit = splits[state.activeSplitDay] || Object.values(splits)[0];
-        let reply = "";
+      const thinkingId = `exo-think-${Date.now()}`;
+      feed.innerHTML += `
+        <div id="${thinkingId}" class="exo-card p-4 flex items-center gap-2.5">
+          <span class="w-2 h-2 rounded-full animate-ping" style="background-color: var(--exo-violet);"></span>
+          <span class="text-[12px] font-semibold text-zinc-300">Analyzing your lifts &amp; macros via Gemini...</span>
+        </div>
+      `;
 
-        if (q.includes("protein") || q.includes("office") || q.includes("macro")) {
-          reply = `To hit your <strong>${prof.targetProtein}g protein</strong> under <strong>${prof.targetKcal} kcal</strong> at the office: anchor breakfast with 25g+ (3 eggs or paneer chilla), keep 1 scoop whey or Amul High-Protein Buttermilk at your desk at 5 PM (+20–25g), and finish with 35g+ at lunch and dinner.`;
-        } else if (q.includes("tendon") || q.includes("return") || q.includes("break")) {
-          reply = `For a tendon-safe ramp on <strong>${curSplit.name}</strong>: always tap <strong>••• → + 50% Warm-Up</strong> on your first compound lift, use a 2-second controlled lower on every rep, and let EXO only bump weight once all working sets hit the top of the rep range cleanly.`;
-        } else if (q.includes("sleep") || q.includes("low energy") || q.includes("tired")) {
-          reply = `<strong>Low-Energy Protocol:</strong> Keep your working weights identical to last session (preserves strength signal) but cut 1 working set per exercise and extend rest timers to 2:00. Hydrate with 500 ml + a pinch of salt 30 minutes before lifting.`;
+      coachChatHistory.push({ role: "user", parts: [{ text: promptText }] });
+      if (coachChatHistory.length > 8) coachChatHistory = coachChatHistory.slice(-8);
+
+      let replyText = "";
+      let usedCloud = false;
+
+      try {
+        const res = await fetch(SUPABASE_COACH_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
+            "apikey": SUPABASE_ANON_KEY
+          },
+          body: JSON.stringify({
+            systemInstruction: buildCoachSystemInstruction(),
+            contents: coachChatHistory
+          })
+        });
+
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        if (data && data.reply) {
+          replyText = data.reply;
+          usedCloud = true;
         } else {
-          const lastSess = state.sessionHistory[state.sessionHistory.length - 1];
-          const sessNote = lastSess
-            ? `Your last session (<strong>${lastSess.splitName}</strong>) moved <strong>${lastSess.volumeKg.toLocaleString()} kg</strong> across ${lastSess.setsDone} sets.`
-            : `You have <strong>${state.sessionsCompleted}</strong> logged sessions so far.`;
-          reply = `${sessNote} On <strong>${curSplit.name}</strong> today, focus on beating your dimmed <strong>PREVIOUS</strong> column by +1 rep on your first 2 lifts. Once all working sets hit max reps, EXO will automatically unlock your next weight jump.`;
+          throw new Error("Empty reply");
         }
+      } catch (err) {
+        replyText = buildOfflineCoachFallback(promptText);
+      }
 
-        feed.innerHTML += `
-          <div class="exo-card p-4 space-y-1.5">
+      coachChatHistory.push({ role: "model", parts: [{ text: replyText }] });
+      if (coachChatHistory.length > 8) coachChatHistory = coachChatHistory.slice(-8);
+
+      const thinkEl = document.getElementById(thinkingId);
+      if (thinkEl) thinkEl.remove();
+
+      if (statusDot && statusLbl) {
+        statusDot.style.backgroundColor = usedCloud ? "var(--exo-volt)" : "var(--exo-amber)";
+        statusLbl.textContent = usedCloud ? "Gemini 2.5 Live" : "Local Telemetry Fallback";
+      }
+
+      feed.innerHTML += `
+        <div class="exo-card p-4 space-y-2">
+          <div class="flex items-center justify-between">
             <div class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest" style="color: var(--exo-violet);">
-              <span class="w-1.5 h-1.5 rounded-full bg-[#A78BFA]"></span> EXO Analysis
+              <span class="w-1.5 h-1.5 rounded-full bg-[#A78BFA]"></span> ${usedCloud ? "Gemini 2.5 Analysis" : "EXO Telemetry Engine"}
             </div>
-            <p class="text-[13px] text-zinc-200 leading-relaxed">${reply}</p>
           </div>
-        `;
-      }, 420);
+          ${formatCoachMarkdown(replyText)}
+        </div>
+      `;
+
+      if (orb) orb.classList.remove("thinking");
+      if (sendBtn) { sendBtn.disabled = false; sendBtn.style.opacity = "1"; }
+      coachIsBusy = false;
     }
 
     /* ==========================================================================
